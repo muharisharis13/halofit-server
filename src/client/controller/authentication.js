@@ -118,13 +118,13 @@ class controllerAuthentication {
   }
 
   async register(req, res) {
-    const { username, email, password, phone_number, gender, pin } = req.body;
+    const { username, email, password, gender, pin } = req.body;
     try {
       const result = await userModel.create({
         username,
         email,
         password: hash(password),
-        phone_number,
+        phone_number: "",
         gender,
         pin: hash(pin),
         balance: 0,
