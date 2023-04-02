@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Waktu pembuatan: 23 Mar 2023 pada 18.03
+-- Waktu pembuatan: 02 Apr 2023 pada 06.43
 -- Versi server: 10.4.21-MariaDB
 -- Versi PHP: 7.3.33
 
@@ -20,6 +20,91 @@ SET time_zone = "+00:00";
 --
 -- Database: `helofit`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `booking`
+--
+
+CREATE TABLE `booking` (
+  `id` int(11) NOT NULL,
+  `facilityId` int(11) NOT NULL,
+  `total` int(11) NOT NULL DEFAULT 0,
+  `price` int(11) NOT NULL DEFAULT 0,
+  `booking_date` varchar(255) NOT NULL,
+  `userId` int(11) NOT NULL,
+  `time` varchar(255) NOT NULL,
+  `createdAt` datetime NOT NULL,
+  `updatedAt` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data untuk tabel `booking`
+--
+
+INSERT INTO `booking` (`id`, `facilityId`, `total`, `price`, `booking_date`, `userId`, `time`, `createdAt`, `updatedAt`) VALUES
+(2, 1, 200000, 100000, '2023-03-26', 10, '19:00', '2023-03-26 08:28:03', '2023-03-26 08:28:03');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `category`
+--
+
+CREATE TABLE `category` (
+  `id` int(11) NOT NULL,
+  `category_name` varchar(255) NOT NULL,
+  `createdAt` datetime NOT NULL,
+  `updatedAt` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data untuk tabel `category`
+--
+
+INSERT INTO `category` (`id`, `category_name`, `createdAt`, `updatedAt`) VALUES
+(1, 'badminton', '2023-03-29 05:11:35', '2023-03-29 05:11:35');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `facility`
+--
+
+CREATE TABLE `facility` (
+  `id` int(11) NOT NULL,
+  `merchantId` int(11) NOT NULL,
+  `facility_name` varchar(255) NOT NULL,
+  `banner_img` varchar(255) NOT NULL,
+  `price` int(11) NOT NULL DEFAULT 0,
+  `uom` enum('jam') NOT NULL DEFAULT 'jam',
+  `categoryId` int(11) NOT NULL,
+  `time` varchar(255) DEFAULT NULL,
+  `available` tinyint(1) NOT NULL DEFAULT 1,
+  `createdAt` datetime NOT NULL,
+  `updatedAt` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data untuk tabel `facility`
+--
+
+INSERT INTO `facility` (`id`, `merchantId`, `facility_name`, `banner_img`, `price`, `uom`, `categoryId`, `time`, `available`, `createdAt`, `updatedAt`) VALUES
+(3, 2, 'badminton lapangan 1', 'http://localhost:3002/view/image/banner/1680058126051wallpaperflare.com_wallpaper.jpg', 100000, 'jam', 1, '[08:00,17:00]', 1, '2023-03-29 09:48:46', '2023-03-29 09:48:46');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `feature`
+--
+
+CREATE TABLE `feature` (
+  `id` int(11) NOT NULL,
+  `feature_name` varchar(255) NOT NULL,
+  `createdAt` datetime NOT NULL,
+  `updatedAt` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -49,6 +134,87 @@ INSERT INTO `merchant` (`id`, `email`, `password`, `merchant_name`, `address`, `
 -- --------------------------------------------------------
 
 --
+-- Struktur dari tabel `merchant_time`
+--
+
+CREATE TABLE `merchant_time` (
+  `id` int(11) NOT NULL,
+  `merchantId` int(11) NOT NULL,
+  `sunday` varchar(255) DEFAULT NULL,
+  `monday` varchar(255) DEFAULT NULL,
+  `tuesday` varchar(255) DEFAULT NULL,
+  `wednesday` varchar(255) DEFAULT NULL,
+  `thursday` varchar(255) DEFAULT NULL,
+  `friday` varchar(255) DEFAULT NULL,
+  `saturday` varchar(255) DEFAULT NULL,
+  `createdAt` datetime NOT NULL,
+  `updatedAt` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data untuk tabel `merchant_time`
+--
+
+INSERT INTO `merchant_time` (`id`, `merchantId`, `sunday`, `monday`, `tuesday`, `wednesday`, `thursday`, `friday`, `saturday`, `createdAt`, `updatedAt`) VALUES
+(1, 2, '[\"08:00\",\"17:00\"]', '[\"08:00\",\"17:00\"]', '[\"08:00\",\"17:00\"]', '[\"08:00\",\"17:00\"]', '[\"08:00\",\"17:00\"]', '[\"08:00\",\"17:00\"]', '[\"08:00\",\"17:00\"]', '2023-03-29 10:23:33', '2023-03-29 10:23:33');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `room`
+--
+
+CREATE TABLE `room` (
+  `id` int(11) NOT NULL,
+  `room_name` varchar(255) NOT NULL,
+  `facilityId` int(11) NOT NULL,
+  `gender` varchar(255) NOT NULL,
+  `range_age` varchar(255) NOT NULL,
+  `max_capacity` int(11) DEFAULT 0,
+  `room_desc` varchar(255) DEFAULT NULL,
+  `room_expired` datetime NOT NULL,
+  `visibility` tinyint(1) DEFAULT 1,
+  `createdAt` datetime NOT NULL,
+  `updatedAt` datetime NOT NULL,
+  `userId` int(11) NOT NULL,
+  `bookingId` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data untuk tabel `room`
+--
+
+INSERT INTO `room` (`id`, `room_name`, `facilityId`, `gender`, `range_age`, `max_capacity`, `room_desc`, `room_expired`, `visibility`, `createdAt`, `updatedAt`, `userId`, `bookingId`) VALUES
+(9, 'Ayo main bareng', 3, 'male', '[17,25]', 10, 'room desc', '2023-03-30 08:50:50', 1, '2023-03-29 08:50:50', '2023-03-29 08:50:50', 10, 2),
+(10, 'Ayo main bareng', 1, 'male', '[17,25]', 10, 'room desc', '2023-03-30 08:52:24', 1, '2023-03-29 08:52:24', '2023-03-29 08:52:24', 20, 2);
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `room_detail`
+--
+
+CREATE TABLE `room_detail` (
+  `id` int(11) NOT NULL,
+  `roomId` int(11) NOT NULL,
+  `userId` int(11) NOT NULL,
+  `qty` int(11) NOT NULL,
+  `createdAt` datetime NOT NULL,
+  `updatedAt` datetime NOT NULL,
+  `status_approved` enum('approved','reject','unapproved') DEFAULT 'unapproved'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data untuk tabel `room_detail`
+--
+
+INSERT INTO `room_detail` (`id`, `roomId`, `userId`, `qty`, `createdAt`, `updatedAt`, `status_approved`) VALUES
+(1, 9, 10, 3, '2023-03-29 07:18:48', '2023-03-29 07:18:48', 'approved'),
+(3, 9, 20, 2, '2023-03-31 22:01:21', '2023-04-01 04:07:26', 'approved');
+
+-- --------------------------------------------------------
+
+--
 -- Struktur dari tabel `token`
 --
 
@@ -66,7 +232,7 @@ CREATE TABLE `token` (
 --
 
 INSERT INTO `token` (`id`, `userId`, `token`, `refreshToken`, `createdAt`, `updatedAt`) VALUES
-(5, 10, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhVmFsdWVzIjp7ImlkIjoxMCwidXNlcm5hbWUiOiJtdWhhcmlzaGFyaXMxMyIsImVtYWlsIjoibXVoYXJpc2hhcmlzMTNAZ21haWwuY29tIiwicGFzc3dvcmQiOiJjZmMyOGI3NTE0ODYxODExZWNhNmIxY2VjN2MxMjM4YSIsInBob25lX251bWJlciI6IjA4MjIzOTcyMDMxOCIsImdlbmRlciI6Im1hbGUiLCJwaW4iOiIzZjExOGU2ZDI4YTk2ZWMwM2YwOGVhYmFjNmZhMTdjNSIsImJhbGFuY2UiOjAsInVwZGF0ZWRBdCI6IjIwMjMtMDMtMjNUMDc6NTM6MzUuMDUzWiIsImNyZWF0ZWRBdCI6IjIwMjMtMDMtMjNUMDc6NTM6MzUuMDUzWiJ9LCJfcHJldmlvdXNEYXRhVmFsdWVzIjp7InVzZXJuYW1lIjoibXVoYXJpc2hhcmlzMTMiLCJlbWFpbCI6Im11aGFyaXNoYXJpczEzQGdtYWlsLmNvbSIsInBhc3N3b3JkIjoiY2ZjMjhiNzUxNDg2MTgxMWVjYTZiMWNlYzdjMTIzOGEiLCJwaG9uZV9udW1iZXIiOiIwODIyMzk3MjAzMTgiLCJnZW5kZXIiOiJtYWxlIiwicGluIjoiM2YxMThlNmQyOGE5NmVjMDNmMDhlYWJhYzZmYTE3YzUiLCJiYWxhbmNlIjowLCJpZCI6MTAsImNyZWF0ZWRBdCI6IjIwMjMtMDMtMjNUMDc6NTM6MzUuMDUzWiIsInVwZGF0ZWRBdCI6IjIwMjMtMDMtMjNUMDc6NTM6MzUuMDUzWiJ9LCJ1bmlxbm8iOjEsIl9jaGFuZ2VkIjp7fSwiX29wdGlvbnMiOnsiaXNOZXdSZWNvcmQiOnRydWUsIl9zY2hlbWEiOm51bGwsIl9zY2hlbWFEZWxpbWl0ZXIiOiIifSwiaXNOZXdSZWNvcmQiOmZhbHNlLCJpYXQiOjE2Nzk1NTgwMTV9.ElSN0Qiy6Q4fybCrd1Rcj2ya2QiI8DYygy8L_yIdqqc', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhVmFsdWVzIjp7ImlkIjoxMCwidXNlcm5hbWUiOiJtdWhhcmlzaGFyaXMxMyIsImVtYWlsIjoibXVoYXJpc2hhcmlzMTNAZ21haWwuY29tIiwicGFzc3dvcmQiOiJjZmMyOGI3NTE0ODYxODExZWNhNmIxY2VjN2MxMjM4YSIsInBob25lX251bWJlciI6IjA4MjIzOTcyMDMxOCIsImdlbmRlciI6Im1hbGUiLCJwaW4iOiIzZjExOGU2ZDI4YTk2ZWMwM2YwOGVhYmFjNmZhMTdjNSIsImJhbGFuY2UiOjAsInVwZGF0ZWRBdCI6IjIwMjMtMDMtMjNUMDc6NTM6MzUuMDUzWiIsImNyZWF0ZWRBdCI6IjIwMjMtMDMtMjNUMDc6NTM6MzUuMDUzWiJ9LCJfcHJldmlvdXNEYXRhVmFsdWVzIjp7InVzZXJuYW1lIjoibXVoYXJpc2hhcmlzMTMiLCJlbWFpbCI6Im11aGFyaXNoYXJpczEzQGdtYWlsLmNvbSIsInBhc3N3b3JkIjoiY2ZjMjhiNzUxNDg2MTgxMWVjYTZiMWNlYzdjMTIzOGEiLCJwaG9uZV9udW1iZXIiOiIwODIyMzk3MjAzMTgiLCJnZW5kZXIiOiJtYWxlIiwicGluIjoiM2YxMThlNmQyOGE5NmVjMDNmMDhlYWJhYzZmYTE3YzUiLCJiYWxhbmNlIjowLCJpZCI6MTAsImNyZWF0ZWRBdCI6IjIwMjMtMDMtMjNUMDc6NTM6MzUuMDUzWiIsInVwZGF0ZWRBdCI6IjIwMjMtMDMtMjNUMDc6NTM6MzUuMDUzWiJ9LCJ1bmlxbm8iOjEsIl9jaGFuZ2VkIjp7fSwiX29wdGlvbnMiOnsiaXNOZXdSZWNvcmQiOnRydWUsIl9zY2hlbWEiOm51bGwsIl9zY2hlbWFEZWxpbWl0ZXIiOiIifSwiaXNOZXdSZWNvcmQiOmZhbHNlLCJpYXQiOjE2Nzk1NTgwMTV9.5Axr1IHMreAApo6hfkHaDvHNCiPwIMXkBWt-KL6gZ1g', '2023-03-23 07:53:35', '2023-03-23 07:53:35'),
+(5, 10, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTAsInVzZXJuYW1lIjoibXVoYXJpc2hhcmlzMTMiLCJlbWFpbCI6Im11aGFyaXNoYXJpczEzQGdtYWlsLmNvbSIsInBob25lX251bWJlciI6IjA4MjIzOTcyMDMxOCIsImdlbmRlciI6Im1hbGUiLCJwb2ludCI6IjAiLCJiYWxhbmNlIjowLCJjcmVhdGVkQXQiOiIyMDIzLTAzLTIzIDA3OjUzOjM1IiwidXBkYXRlZEF0IjoiMjAyMy0wMy0yMyAwNzo1MzozNSIsImlhdCI6MTY4MDQxMDA0Nn0.EY3J8yhzxv6ftrb6a7hemKXeLXlZPhhV5i8EzqexNKU', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTAsInVzZXJuYW1lIjoibXVoYXJpc2hhcmlzMTMiLCJlbWFpbCI6Im11aGFyaXNoYXJpczEzQGdtYWlsLmNvbSIsInBob25lX251bWJlciI6IjA4MjIzOTcyMDMxOCIsImdlbmRlciI6Im1hbGUiLCJwb2ludCI6IjAiLCJiYWxhbmNlIjowLCJjcmVhdGVkQXQiOiIyMDIzLTAzLTIzIDA3OjUzOjM1IiwidXBkYXRlZEF0IjoiMjAyMy0wMy0yMyAwNzo1MzozNSIsImlhdCI6MTY4MDQxMDA0Nn0.M7m9G2hO8whYoiMBraVkb7EIVqc7qIL-SqF1dU3c4kA', '2023-03-23 07:53:35', '2023-04-02 11:34:06'),
 (6, 20, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsInVzZXJuYW1lIjoibXVoYXJpc2hhcmlzMTMzIiwiZW1haWwiOiJtdWhhcmlzaGFyaXMxMzNAZ21haWwuY29tIiwicGhvbmVfbnVtYmVyIjoiMDgyMjM5NzIwMzE4IiwiZ2VuZGVyIjoibWFsZSIsImJhbGFuY2UiOjAsImNyZWF0ZWRBdCI6IjIwMjMtMDMtMjNUMDg6MDI6MDAuMDAwWiIsInVwZGF0ZWRBdCI6IjIwMjMtMDMtMjNUMDg6Mjc6MzYuMDAwWiIsImlhdCI6MTY3OTU2MDA3OH0.RmoWzDAFwqk1uSPqTrmt4HnOdoj68__usJgNs2LhEt0', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsInVzZXJuYW1lIjoibXVoYXJpc2hhcmlzMTMzIiwiZW1haWwiOiJtdWhhcmlzaGFyaXMxMzNAZ21haWwuY29tIiwicGhvbmVfbnVtYmVyIjoiMDgyMjM5NzIwMzE4IiwiZ2VuZGVyIjoibWFsZSIsImJhbGFuY2UiOjAsImNyZWF0ZWRBdCI6IjIwMjMtMDMtMjNUMDg6MDI6MDAuMDAwWiIsInVwZGF0ZWRBdCI6IjIwMjMtMDMtMjNUMDg6Mjc6MzYuMDAwWiIsImlhdCI6MTY3OTU2MDA3OH0.ZSdNTpxgRLzbmQNUpmhqYhEAvaKs4hGwjknjSg0ZTGQ', '2023-03-23 08:02:00', '2023-03-23 08:27:58');
 
 -- --------------------------------------------------------
@@ -89,7 +255,7 @@ CREATE TABLE `token_admin` (
 --
 
 INSERT INTO `token_admin` (`id`, `adminId`, `token`, `refreshToken`, `createdAt`, `updatedAt`) VALUES
-(2, 2, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiZW1haWwiOiJtdWhhcmlzaGFyaXMxM0BnbWFpbC5jb20iLCJtZXJjaGFudF9uYW1lIjoibXVoYXJpc19tZXJjaGFudCIsImFkZHJlc3MiOiJqbG4gZGVibG9kIHN1bmRvcm8iLCJkZXNjIjoibG9yZW0iLCJiYWxhbmNlIjowLCJjcmVhdGVkQXQiOiIyMDIzLTAzLTIzVDA5OjM4OjA1LjAwMFoiLCJ1cGRhdGVkQXQiOiIyMDIzLTAzLTIzVDA5OjM4OjA1LjAwMFoiLCJpYXQiOjE2Nzk1NjQ4OTh9.-TTK2zIssGLVUp6YAXxqljAPBy9T-oslm2vkZyyH9bU', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiZW1haWwiOiJtdWhhcmlzaGFyaXMxM0BnbWFpbC5jb20iLCJtZXJjaGFudF9uYW1lIjoibXVoYXJpc19tZXJjaGFudCIsImFkZHJlc3MiOiJqbG4gZGVibG9kIHN1bmRvcm8iLCJkZXNjIjoibG9yZW0iLCJiYWxhbmNlIjowLCJjcmVhdGVkQXQiOiIyMDIzLTAzLTIzVDA5OjM4OjA1LjAwMFoiLCJ1cGRhdGVkQXQiOiIyMDIzLTAzLTIzVDA5OjM4OjA1LjAwMFoiLCJpYXQiOjE2Nzk1NjQ4OTh9.k1IJMbwud8QD8CHqqCybMZ2SzYc9BT4Z_OklldB8N1I', '2023-03-23 09:38:05', '2023-03-23 09:48:18');
+(2, 2, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiZW1haWwiOiJtdWhhcmlzaGFyaXMxM0BnbWFpbC5jb20iLCJtZXJjaGFudF9uYW1lIjoibXVoYXJpc19tZXJjaGFudCIsImFkZHJlc3MiOiJqbG4gZGVibG9kIHN1bmRvcm8iLCJkZXNjIjoibG9yZW0iLCJiYWxhbmNlIjowLCJjcmVhdGVkQXQiOiIyMDIzLTAzLTIzIDA5OjM4OjA1IiwidXBkYXRlZEF0IjoiMjAyMy0wMy0yMyAwOTozODowNSIsImlhdCI6MTY4MDA1ODk5MH0.qOBdbxxPIwpXfTDQbAiXnUfAjcMmJisqNIsdJyxRbQo', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiZW1haWwiOiJtdWhhcmlzaGFyaXMxM0BnbWFpbC5jb20iLCJtZXJjaGFudF9uYW1lIjoibXVoYXJpc19tZXJjaGFudCIsImFkZHJlc3MiOiJqbG4gZGVibG9kIHN1bmRvcm8iLCJkZXNjIjoibG9yZW0iLCJiYWxhbmNlIjowLCJjcmVhdGVkQXQiOiIyMDIzLTAzLTIzIDA5OjM4OjA1IiwidXBkYXRlZEF0IjoiMjAyMy0wMy0yMyAwOTozODowNSIsImlhdCI6MTY4MDA1ODk5MH0.kHWUsdSag-IvFF9u8FlLhfEK9UZnsjopNTNnZh9gfaM', '2023-03-23 09:38:05', '2023-03-29 10:03:10');
 
 -- --------------------------------------------------------
 
@@ -124,11 +290,55 @@ INSERT INTO `user` (`id`, `username`, `email`, `password`, `phone_number`, `gend
 --
 
 --
+-- Indeks untuk tabel `booking`
+--
+ALTER TABLE `booking`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `category`
+--
+ALTER TABLE `category`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `facility`
+--
+ALTER TABLE `facility`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `feature`
+--
+ALTER TABLE `feature`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indeks untuk tabel `merchant`
 --
 ALTER TABLE `merchant`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `email` (`email`);
+
+--
+-- Indeks untuk tabel `merchant_time`
+--
+ALTER TABLE `merchant_time`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `room`
+--
+ALTER TABLE `room`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `room_detail`
+--
+ALTER TABLE `room_detail`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `roomId` (`roomId`),
+  ADD KEY `userId` (`userId`);
 
 --
 -- Indeks untuk tabel `token`
@@ -285,10 +495,52 @@ ALTER TABLE `user`
 --
 
 --
+-- AUTO_INCREMENT untuk tabel `booking`
+--
+ALTER TABLE `booking`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT untuk tabel `category`
+--
+ALTER TABLE `category`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT untuk tabel `facility`
+--
+ALTER TABLE `facility`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT untuk tabel `feature`
+--
+ALTER TABLE `feature`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT untuk tabel `merchant`
 --
 ALTER TABLE `merchant`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT untuk tabel `merchant_time`
+--
+ALTER TABLE `merchant_time`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT untuk tabel `room`
+--
+ALTER TABLE `room`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
+-- AUTO_INCREMENT untuk tabel `room_detail`
+--
+ALTER TABLE `room_detail`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT untuk tabel `token`
@@ -307,6 +559,17 @@ ALTER TABLE `token_admin`
 --
 ALTER TABLE `user`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+
+--
+-- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)
+--
+
+--
+-- Ketidakleluasaan untuk tabel `room_detail`
+--
+ALTER TABLE `room_detail`
+  ADD CONSTRAINT `room_detail_ibfk_1` FOREIGN KEY (`roomId`) REFERENCES `room` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `room_detail_ibfk_2` FOREIGN KEY (`userId`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
