@@ -10,5 +10,8 @@ router.post(
   controllerAuthentication.verifyAccountByPin
 );
 router.post("/update-password", controllerAuthentication.setupNewPassword);
+router.get("/data", (req, res) => {
+  res.json("hallo");
+});
 
 module.exports = router;

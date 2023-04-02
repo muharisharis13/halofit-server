@@ -15,6 +15,159 @@ const getOneDayTimeStamps = (date) => {
 };
 
 class controllerRoom {
+  async approvedRequestUser(req, res) {
+    const { roomId, userId, status_approved } = req.body
+    try {
+      const checkRoomAvailable = await roomModel.findOne({
+        where: {
+          id: roomId
+        }
+      })
+
+      if (checkRoomAvailable.id) {
+        const getDetailRoomByRoomId = await roomDetailModel.findOne({
+          where: {
+            roomId,
+            userId
+          }
+        })
+
+        if (getDetailRoomByRoomId.id) {
+          const getResultDetailRoomId = await getDetailRoomByRoomId.update({
+            status_approved
+          })
+
+          responseJSON({
+            res,
+            status: 200,
+            data: getResultDetailRoomId,
+          });
+        }
+        else {
+          responseJSON({
+            res,
+            status: 400,
+            data: "Informasi user tidak ditemukan !",
+          });
+        }
+      }
+      else {
+        responseJSON({
+          res,
+          status: 400,
+          data: "Room Tidak Tersedia !",
+        });
+      }
+    } catch (error) {
+      responseJSON({
+        res,
+        status: 500,
+        data: error.errors?.map((item) => item.message),
+      });
+    }
+  }
+  async getListReqJoinRoom(req, res) {
+    const { user_id } = req.params
+    try {
+      const getRoom = await roomModel.findOne({
+        where: {
+          userId: user_id,
+        },
+        include: [
+          {
+            model: userModel,
+            as: "user",
+            attributes: {
+              exclude: ["password", "pin", "createdAt", "updatedAt"]
+            }
+          }
+        ]
+      })
+
+      if (getRoom.id) {
+
+        const getListReqJoinRoom = await roomDetailModel.findAll({
+          where: {
+            roomId: getRoom.id,
+            status_approved: "unapproved"
+          },
+          include: [
+            {
+              model: userModel,
+              as: "user",
+              attributes: {
+                exclude: ["password", "pin", "createdAt", "updatedAt"]
+              }
+            }
+          ]
+        })
+
+        responseJSON({
+          res,
+          status: 200,
+          data: {
+            room_info: getRoom,
+            list_request: getListReqJoinRoom
+          },
+        });
+      }
+      else {
+        responseJSON({
+          res,
+          status: 200,
+          data: "Room Tidak Ditemukan",
+        });
+
+      }
+
+
+    } catch (error) {
+      responseJSON({
+        res,
+        status: 500,
+        data: error.errors?.map((item) => item.message),
+      });
+    }
+  }
+  async joinRoom(req, res) {
+    const { roomId, userId, qty } = req.body
+    try {
+      const findUserInRoomDetail = await roomDetailModel.findOne({
+        where: {
+          userId: userId
+        }
+      })
+
+      if (findUserInRoomDetail) {
+        responseJSON({
+          res,
+          status: 400,
+          data: "User Already Exist This Room !",
+        });
+      }
+      else {
+        const result = await roomDetailModel.create({
+          roomId,
+          userId,
+          qty: qty
+        })
+
+        responseJSON({
+          res,
+          status: 200,
+          data: result,
+        });
+
+      }
+    }
+    catch (error) {
+      responseJSON({
+        res,
+        status: 400,
+        data: error.errors?.map((item) => item.message),
+      });
+    }
+  }
   async deleteRoom(req, res) {
     const { room_id } = req.params;
     try {
@@ -87,18 +240,55 @@ class controllerRoom {
         where: {
           id: room_id,
         },
+        include: [
+          {
+            model: facilityModel,
+            as: "facility",
+            attributes: {
+              exclude: ["password", "createdAt", "updatedAt"],
+            },
+          },
+          {
+            model: userModel,
+            as: "user",
+            attributes: {
+              exclude: ["password", "createdAt", "updatedAt"],
+            },
+          },
+          {
+            model: bookingModel,
+            as: "booking",
+            attributes: {
+              exclude: ["createdAt", "updatedAt"],
+            },
+          },
+        ],
+        attributes: {
+          exclude: ["visibility"],
+        },
+        raw: true
+      });
+
+      const getDetailRoom = await roomDetailModel.findAll({
+        where: {
+          roomId: room_id
+        },
+        raw: true
       });
 
       responseJSON({
         res,
         status: 200,
-        data: result,
+        data: {
+          ...result,
+          room_detail: getDetailRoom
+        },
       });
     } catch (error) {
       responseJSON({
         res,
-        status: 400,
-        data: error.errors?.map((item) => item.message),
+        status: 500,
+        data: error.errors?.map((item) => item.message) || error,
       });
     }
   }
@@ -152,6 +342,9 @@ class controllerRoom {
 
       const getDetailRoom = await roomDetailModel.findAll();
 
+      // console.log({ getDetailRoom })
+
+
       const newList = {
         count: getListRoom.count,
         rows: getListRoom.rows.map((item) => ({
@@ -159,6 +352,7 @@ class controllerRoom {
           room_detail: getDetailRoom.filter(
             (filter) => filter.roomId == item.dataValues.id
           ),
+          // room_detail: getDetailRoom(item.id)
         })),
       };
 

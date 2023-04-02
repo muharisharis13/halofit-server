@@ -1,11 +1,26 @@
 const express = require("express");
 const router = express.Router();
 const controllelFeature = require("../controller/feature");
+const { token } = require("../../../utils");
 
-router.delete("/:feature_id", controllelFeature.deleteFeature);
-router.put("/:feature_id", controllelFeature.editFeature);
-router.get("/:feature_id", controllelFeature.getDetailFeature);
-router.get("/", controllelFeature.getLiteFeature);
-router.post("/", controllelFeature.createFeature);
+const { isAuthenticationToken } = token;
+
+router.delete(
+  "/:feature_id",
+  isAuthenticationToken,
+  controllelFeature.deleteFeature
+);
+router.put(
+  "/:feature_id",
+  isAuthenticationToken,
+  controllelFeature.editFeature
+);
+router.get(
+  "/:feature_id",
+  isAuthenticationToken,
+  controllelFeature.getDetailFeature
+);
+router.get("/", isAuthenticationToken, controllelFeature.getLiteFeature);
+router.post("/", isAuthenticationToken, controllelFeature.createFeature);
 
 module.exports = router;
