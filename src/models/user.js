@@ -26,8 +26,8 @@ const user = database.define(
       allowNull: false,
     },
     gender: {
-      type: DataTypes.STRING,
-      allowNull: false,
+      type: DataTypes.ENUM("male", "female"),
+      defaultValue: "male",
     },
     pin: {
       type: DataTypes.STRING,
@@ -52,6 +52,7 @@ const user = database.define(
 
 user.sync({
   alter: false,
+  force: false,
 });
 
 module.exports = user;

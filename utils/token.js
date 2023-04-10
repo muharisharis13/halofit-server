@@ -11,16 +11,19 @@ const createRefreshToken = (data) => jwt.sign(data, secretTokenRefresh);
 
 const isAuthenticationToken = async (req, res, next) => {
   try {
-    const typeToken = req.headers.authorization.split(" ")[0];
-    const token = req.headers.authorization.split(" ")[1];
+    const typeToken = req.headers.authorization?.split(" ")[0] || "";
+    const token = req.headers.authorization?.split(" ")[1] || "";
     const decoded = jwt.verify(token, secretToken);
     const { username, email, id } = decoded;
+
+    console.log({ decoded })
+
 
     if (typeToken !== "Bearer") {
       responseJSON({
         res,
         status: 401,
-        data: "Type Authorization Cant Access !",
+        data: "Type Authorization Can't Access !",
       });
     }
 

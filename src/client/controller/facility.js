@@ -23,6 +23,7 @@ class controllerFacility {
         [Op.like]: `%${query ?? ""}%`,
       },
     };
+
     try {
       const getListFacility = await facilityModel.findAndCountAll({
         include: [

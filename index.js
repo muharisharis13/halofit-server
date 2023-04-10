@@ -30,6 +30,10 @@ Database.authenticate()
     console.log("err", err);
   });
 
+Database.sync({
+  alter: false,
+});
+
 const port = process.env.PORT;
 const NODE_ENV = process.env.NODE_ENV;
 

@@ -112,7 +112,7 @@ class controllerAuthentication {
       responseJSON({
         res,
         status: 400,
-        data: error.errors?.map((item) => item.message),
+        data: error,
       });
     }
   }
@@ -125,7 +125,7 @@ class controllerAuthentication {
         email,
         password: hash(password),
         phone_number: "",
-        gender,
+        gender: "",
         pin: hash(pin),
         balance: 0,
       });
@@ -174,7 +174,7 @@ class controllerAuthentication {
     } catch (error) {
       responseJSON({
         res,
-        status: 500,
+        status: 400,
         data: error.errors?.map((item) => item.message),
       });
     }
