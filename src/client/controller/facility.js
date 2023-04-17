@@ -76,7 +76,7 @@ class controllerFacility {
         list_time: data.list_time?.map((item) => ({
           time: item,
           available:
-            newGetBooking.filter((filter) => filter.time[0] === item).length ===
+            newGetBooking.filter((filter) => filter.time[0] === item &&).length ===
             1
               ? false
               : true,
