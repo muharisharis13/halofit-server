@@ -55,7 +55,7 @@ class controllerAuthentication {
       responseJSON({
         res,
         status: 500,
-        data: error.errors.map((item) => item.message),
+        data: error.errors?.map((item) => item.message) || error,
       });
     }
   }

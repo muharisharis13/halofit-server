@@ -15,6 +15,48 @@ const diffDays = (date1, date2) => {
 };
 
 class controllerTask {
+  async getTaskDetail(req, res) {
+    const { taskId } = req.params;
+    try {
+      const resultTask = await taskModel.findOne({
+        where: {
+          id: taskId,
+        },
+        include: [
+          {
+            model: merchantModel,
+            as: "merchant",
+            attributes: ["id", "email", "merchant_name", "address"],
+          },
+        ],
+      });
+
+      const resultTaskDetail = await taskDetailModel.findAll({
+        where: {
+          taskId,
+        },
+        raw: true,
+      });
+
+      responseJSON({
+        res,
+        status: 200,
+        data: {
+          task_info: resultTask,
+          task_detail: resultTaskDetail.map((item) => ({
+            ...item,
+            list_user: JSON.parse(item.list_user) || [],
+          })),
+        },
+      });
+    } catch (error) {
+      responseJSON({
+        res,
+        status: 500,
+        data: error.errors?.map((item) => item.message) || error,
+      });
+    }
+  }
   async getListTaskOnProgress(req, res) {
     const { userId } = req.params;
     try {

@@ -1,11 +1,48 @@
 const merchantModel = require("../../models/merchant");
 const merchantTimeModel = require("../../models/merchant_time");
+const merchantFeatureModel = require("../../models/merchant_feature");
 const { general, paging } = require("../../../utils");
 const { responseJSON } = general;
 const { getPagination, getPagingData } = paging;
 const { Op } = require("sequelize");
 
 class controllerMerchant {
+  async addFeature(req, res) {
+    const { merchantId = 2, featureId = 1 } = req.body;
+    try {
+      const checkDuplicate = await merchantFeatureModel.findOne({
+        where: {
+          featureId,
+        },
+        raw: true,
+      });
+
+      if (!checkDuplicate) {
+        const result = await merchantFeatureModel.create({
+          merchantId,
+          featureId,
+        });
+
+        responseJSON({
+          res,
+          status: 200,
+          data: result,
+        });
+      } else {
+        responseJSON({
+          res,
+          status: 400,
+          data: "Prasarana Sudah Di Ada",
+        });
+      }
+    } catch (error) {
+      responseJSON({
+        res,
+        status: 500,
+        data: error?.errors?.map((item) => item.message) || error,
+      });
+    }
+  }
   async getListTimeOpenAndClose(req, res) {
     const { merchant_id } = req.params;
     try {
