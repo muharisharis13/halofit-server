@@ -14,7 +14,6 @@ const getListTIme = (time) => {
     const getOpenTime = time[0].split(":")[0].split("0")[1];
     let arrTime = [];
 
-    console.log(getOpenTime);
     for (let i = 0; i <= getOpenTime; i++) {
       arrTime.push(parseInt(getOpenTime) + parseInt(i));
     }
@@ -40,7 +39,7 @@ const getFullDate = () => {
 class controllerFacility {
   async getTimePlay(req, res) {
     const { facilityId } = req.params;
-    const { merchantId, userId } = req.body;
+    const { merchantId, userId, selected_date } = req.body;
     try {
       const resultFacility = await facilityModel.findOne({
         where: {
@@ -52,14 +51,17 @@ class controllerFacility {
       const getBooking = await bookingModel.findAll({
         where: {
           facilityId,
+          booking_date: selected_date,
         },
+        order: [["createdAt", "DESC"]],
         raw: true,
       });
 
-      const newGetBooking = getBooking.map((item) => ({
-        ...item,
-        time: JSON.parse(item?.time) || [],
-      }));
+      const timeBooking = getBooking
+        ? getBooking.map((item) => JSON.parse(item.time))
+        : [];
+
+      const letNewTime = timeBooking.reduce((acc, val) => acc.concat(val), []);
 
       const data = {
         ...resultFacility.dataValues,
@@ -76,16 +78,15 @@ class controllerFacility {
         list_time: data.list_time?.map((item) => ({
           time: item,
           available:
-            newGetBooking.filter(
-              (filter) =>
-                filter.time[0] === item && getFullDate() == item.booking_date
-            ).length === 1
+            letNewTime.filter((filter) => filter === item)?.length > 0
               ? false
               : true,
         })),
         // getBooking: newGetBooking,
         // getFullDate: getFullDate(),
       };
+
+      console.log({ letNewTime });
 
       responseJSON({
         res,
@@ -96,7 +97,7 @@ class controllerFacility {
       responseJSON({
         res,
         status: 500,
-        data: error.errors?.map((item) => item.message) || error,
+        data: error.errors?.map((item) => item.message) || error.message,
       });
     }
   }

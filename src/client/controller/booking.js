@@ -111,14 +111,7 @@ class controllerBooking {
     }
   }
   async createBooking(req, res) {
-    const {
-      facilityId,
-      total,
-      price,
-      booking_date,
-      userId,
-      time = [],
-    } = req.body;
+    const { facilityId, total, price, booking_date, userId, time } = req.body;
     try {
       const result = await bookingModel.create({
         facilityId,
@@ -126,16 +119,18 @@ class controllerBooking {
         price,
         booking_date,
         userId,
-        time: JSON.stringify(
-          time.map((item, idx) => {
-            if (idx == 1) {
-              const getHours = item.split(":")[0];
-              return `${getHours}:59`;
-            } else {
-              return item;
-            }
-          })
-        ),
+        time: time
+          ? JSON.stringify(
+              JSON.parse(time).map((item, idx) => {
+                if (idx + 1 === time.length) {
+                  const getHours = item.split(":")[0];
+                  return `${getHours}:00`;
+                } else {
+                  return item;
+                }
+              })
+            )
+          : [],
       });
 
       responseJSON({
@@ -147,7 +142,7 @@ class controllerBooking {
       responseJSON({
         res,
         status: 400,
-        data: error.errors?.map((item) => item.message),
+        data: error.errors?.map((item) => item.message) || error?.message,
       });
     }
   }

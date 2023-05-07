@@ -4,9 +4,11 @@ const userModel = require("../../models/user");
 const bookingModel = require("../../models/booking");
 const merchantModel = require("../../models/merchant");
 const roomDetailModel = require("../../models/room_detail");
+const notifJoinRoomModel = require("../../models/notifications_join_room");
 const { general, paging } = require("../../../utils");
-const { Op } = require("sequelize");
+const { Op, JSON } = require("sequelize");
 const categoryModel = require("../../models/category");
+const roomDetail = require("../../models/room_detail");
 const { responseJSON } = general;
 const { getPagination, getPagingData } = paging;
 
@@ -17,6 +19,36 @@ const getOneDayTimeStamps = (date) => {
 };
 
 class controllerRoom {
+  async getOwnRoom(req, res) {
+    const { user_id } = req.params;
+
+    try {
+      const getDetailRoom = await roomDetail.findAll({
+        where: {
+          userId: user_id,
+        },
+        include: [
+          {
+            model: roomModel,
+            attributes: {
+              exclude: ["createdAt", "updatedAt"],
+            },
+          },
+        ],
+      });
+      responseJSON({
+        res,
+        status: 200,
+        data: getDetailRoom,
+      });
+    } catch (error) {
+      responseJSON({
+        res,
+        status: 400,
+        data: error.errors?.map((item) => item.message) || error.message,
+      });
+    }
+  }
   async approvedRequestUser(req, res) {
     const { roomId, userId, status_approved } = req.body;
     try {
@@ -130,6 +162,7 @@ class controllerRoom {
       const findUserInRoomDetail = await roomDetailModel.findOne({
         where: {
           userId: userId,
+          roomId: roomId,
         },
       });
 
@@ -144,6 +177,12 @@ class controllerRoom {
           roomId,
           userId,
           qty: qty,
+        });
+
+        await notifJoinRoomModel.create({
+          roomId,
+          roomDetailId: result?.id,
+          userId,
         });
 
         responseJSON({
@@ -227,6 +266,7 @@ class controllerRoom {
   }
   async getDetailRoom(req, res) {
     const { room_id } = req.params;
+    const { user_id } = req.query;
     try {
       const result = await roomModel.findOne({
         where: {
@@ -279,6 +319,7 @@ class controllerRoom {
       const getDetailRoom = await roomDetailModel.findAll({
         where: {
           roomId: room_id,
+          status_approved: "approved",
         },
         include: [
           {
@@ -303,6 +344,13 @@ class controllerRoom {
         status: 200,
         data: {
           ...result.dataValues,
+          hostId: result.dataValues.userId,
+          isJoin:
+            getDetailRoom.filter(
+              (filter) => filter.dataValues.userId == user_id
+            ).length == 1
+              ? true
+              : false,
           room_detail: getDetailRoom,
         },
       });
@@ -371,7 +419,11 @@ class controllerRoom {
         order: [["id", "DESC"]],
       });
 
-      const getDetailRoom = await roomDetailModel.findAll();
+      const getDetailRoom = await roomDetailModel.findAll({
+        where: {
+          status_approved: "approved",
+        },
+      });
 
       // console.log({ getDetailRoom })
 
@@ -403,34 +455,53 @@ class controllerRoom {
     const {
       room_name,
       facilityId,
-      gender,
+      gender = [],
       range_age = [],
       max_capacity,
       room_desc,
       hostId,
+      bookingId,
     } = req.body;
     try {
       const result = await roomModel.create({
         room_name,
         facilityId,
         gender: gender,
-        range_age: JSON.stringify(range_age),
+        range_age: range_age,
         max_capacity,
         room_desc,
-        hostId,
+        userId: hostId,
         room_expired: new Date(getOneDayTimeStamps(new Date())),
+        bookingId,
       });
 
-      responseJSON({
-        res,
-        status: 200,
-        data: result,
-      });
+      try {
+        const postToRoomDetail = await roomDetailModel.create({
+          roomId: result?.id,
+          userId: hostId,
+          qty: 1,
+          status_approved: "approved",
+        });
+
+        if (postToRoomDetail?.id) {
+          responseJSON({
+            res,
+            status: 200,
+            data: result,
+          });
+        }
+      } catch (error) {
+        responseJSON({
+          res,
+          status: 400,
+          data: error.message,
+        });
+      }
     } catch (error) {
       responseJSON({
         res,
         status: 400,
-        data: error.errors?.map((item) => item.message),
+        data: error.errors?.map((item) => item.message) || error.message,
       });
     }
   }

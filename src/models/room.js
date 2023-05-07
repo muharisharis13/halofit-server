@@ -22,6 +22,7 @@ const room = database.define(
     bookingId: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      unique: true,
     },
     room_name: {
       type: DataTypes.STRING,

@@ -1,7 +1,7 @@
 const { DataTypes } = require("sequelize");
 const database = require("../../database");
 const roomModel = require("./room");
-const userModel = require("./user")
+const userModel = require("./user");
 
 const roomDetail = database.define(
   "room_detail",
@@ -9,6 +9,7 @@ const roomDetail = database.define(
     roomId: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      unique: false,
     },
     userId: {
       type: DataTypes.INTEGER,
@@ -20,8 +21,8 @@ const roomDetail = database.define(
     },
     status_approved: {
       type: DataTypes.ENUM("approved", "reject", "unapproved"),
-      defaultValue: "unapproved"
-    }
+      defaultValue: "unapproved",
+    },
   },
   {
     timestamps: true,
@@ -39,10 +40,9 @@ roomModel.hasMany(roomDetail, {
 
 roomDetail.belongsTo(roomModel);
 
-
 userModel.hasMany(roomDetail, {
-  foreignKey: "userId"
-})
+  foreignKey: "userId",
+});
 
 roomDetail.belongsTo(userModel);
 

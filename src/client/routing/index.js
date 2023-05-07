@@ -7,6 +7,7 @@ const facilityRouter = require("./facility");
 const categoryRouter = require("./category");
 const merchantRouter = require("./merchant");
 const taskRouter = require("./task");
+const notificationRouter = require("./notifications");
 const { url } = require("../../../utils");
 
 const { pathRouterClient } = url;
@@ -20,6 +21,7 @@ const Routing = (app) => {
   app.use(pathRouterClient("category"), categoryRouter);
   app.use(pathRouterClient("merchant"), merchantRouter);
   app.use(pathRouterClient("task"), taskRouter);
+  app.use(pathRouterClient("notification"), notificationRouter);
 };
 
 module.exports = Routing;

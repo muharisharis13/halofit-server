@@ -21,5 +21,6 @@ router.put(
   isAuthenticationToken,
   controllerRoom.approvedRequestUser
 );
+router.get("/own/:user_id", isAuthenticationToken, controllerRoom.getOwnRoom);
 
 module.exports = router;
