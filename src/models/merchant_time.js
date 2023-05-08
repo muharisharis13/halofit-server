@@ -8,6 +8,7 @@ const mertchantTime = database.define(
     merchantId: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      unique: true,
     },
     sunday: {
       type: DataTypes.STRING,

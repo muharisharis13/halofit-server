@@ -5,6 +5,8 @@ const { general, paging } = require("../../../utils");
 const { responseJSON } = general;
 const { getPagination, getPagingData } = paging;
 const { Op } = require("sequelize");
+const featureModel = require("../../models/feature");
+const facilityModel = require("../../models/facility");
 
 class controllerMerchant {
   async addFeature(req, res) {
@@ -138,6 +140,72 @@ class controllerMerchant {
         res,
         status: 500,
         data: error?.errors?.map((item) => item.message) || error,
+      });
+    }
+  }
+
+  async getDetailMerchant(req, res) {
+    const { merchantId } = req.params;
+    try {
+      const result = await merchantModel.findOne({
+        where: {
+          id: merchantId,
+        },
+        attributes: {
+          exclude: ["password"],
+        },
+      });
+
+      const getMerchantFeature = await merchantFeatureModel.findAll({
+        where: {
+          merchantId: result.dataValues.id,
+        },
+        include: [
+          {
+            model: featureModel,
+            attributes: {
+              exclude: ["createdAt", "updatedAt"],
+            },
+          },
+        ],
+      });
+
+      const getMerchantTime = await merchantTimeModel.findOne({
+        where: {
+          merchantId: result.dataValues.id,
+        },
+      });
+
+      const getFacility = await facilityModel.findAll({
+        where: {
+          merchantId: result.dataValues.id,
+        },
+      });
+
+      responseJSON({
+        res,
+        status: 200,
+        data: {
+          merchant_info: result,
+          feature_merchant: getMerchantFeature,
+          merchant_time: {
+            ...getMerchantTime.dataValues,
+            sunday: JSON.parse(getMerchantTime.dataValues.sunday),
+            monday: JSON.parse(getMerchantTime.dataValues.monday),
+            tuesday: JSON.parse(getMerchantTime.dataValues.tuesday),
+            wednesday: JSON.parse(getMerchantTime.dataValues.wednesday),
+            thursday: JSON.parse(getMerchantTime.dataValues.thursday),
+            friday: JSON.parse(getMerchantTime.dataValues.friday),
+            saturday: JSON.parse(getMerchantTime.dataValues.saturday),
+          },
+          facility: getFacility,
+        },
+      });
+    } catch (error) {
+      responseJSON({
+        res,
+        status: 400,
+        data: error.message,
       });
     }
   }
