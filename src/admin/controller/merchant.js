@@ -156,6 +156,8 @@ class controllerMerchant {
         },
       });
 
+      console.log({ ini_result: result });
+
       if (!result) {
         responseJSON({
           res,
@@ -165,7 +167,7 @@ class controllerMerchant {
       } else {
         const getMerchantFeature = await merchantFeatureModel.findAll({
           where: {
-            merchantId: result.dataValues.id,
+            merchantId: result?.dataValues?.id,
           },
           include: [
             {
@@ -179,13 +181,13 @@ class controllerMerchant {
 
         const getMerchantTime = await merchantTimeModel.findOne({
           where: {
-            merchantId: result.dataValues.id,
+            merchantId: result?.dataValues?.id,
           },
         });
 
         const getFacility = await facilityModel.findAll({
           where: {
-            merchantId: result.dataValues.id,
+            merchantId: result?.dataValues?.id,
           },
         });
 
@@ -195,16 +197,18 @@ class controllerMerchant {
           data: {
             merchant_info: result,
             feature_merchant: getMerchantFeature,
-            merchant_time: {
-              ...getMerchantTime.dataValues,
-              sunday: JSON.parse(getMerchantTime.dataValues.sunday),
-              monday: JSON.parse(getMerchantTime.dataValues.monday),
-              tuesday: JSON.parse(getMerchantTime.dataValues.tuesday),
-              wednesday: JSON.parse(getMerchantTime.dataValues.wednesday),
-              thursday: JSON.parse(getMerchantTime.dataValues.thursday),
-              friday: JSON.parse(getMerchantTime.dataValues.friday),
-              saturday: JSON.parse(getMerchantTime.dataValues.saturday),
-            },
+            merchant_time: getMerchantTime
+              ? {
+                  ...getMerchantTime.dataValues,
+                  sunday: JSON.parse(getMerchantTime.dataValues.sunday),
+                  monday: JSON.parse(getMerchantTime.dataValues.monday),
+                  tuesday: JSON.parse(getMerchantTime.dataValues.tuesday),
+                  wednesday: JSON.parse(getMerchantTime.dataValues.wednesday),
+                  thursday: JSON.parse(getMerchantTime.dataValues.thursday),
+                  friday: JSON.parse(getMerchantTime.dataValues.friday),
+                  saturday: JSON.parse(getMerchantTime.dataValues.saturday),
+                }
+              : null,
             facility: getFacility,
           },
         });
