@@ -156,51 +156,59 @@ class controllerMerchant {
         },
       });
 
-      const getMerchantFeature = await merchantFeatureModel.findAll({
-        where: {
-          merchantId: result.dataValues.id,
-        },
-        include: [
-          {
-            model: featureModel,
-            attributes: {
-              exclude: ["createdAt", "updatedAt"],
+      if (!result) {
+        responseJSON({
+          res,
+          status: 400,
+          data: "Merchant Tidak ditemukan !",
+        });
+      } else {
+        const getMerchantFeature = await merchantFeatureModel.findAll({
+          where: {
+            merchantId: result.dataValues.id,
+          },
+          include: [
+            {
+              model: featureModel,
+              attributes: {
+                exclude: ["createdAt", "updatedAt"],
+              },
             },
+          ],
+        });
+
+        const getMerchantTime = await merchantTimeModel.findOne({
+          where: {
+            merchantId: result.dataValues.id,
           },
-        ],
-      });
+        });
 
-      const getMerchantTime = await merchantTimeModel.findOne({
-        where: {
-          merchantId: result.dataValues.id,
-        },
-      });
-
-      const getFacility = await facilityModel.findAll({
-        where: {
-          merchantId: result.dataValues.id,
-        },
-      });
-
-      responseJSON({
-        res,
-        status: 200,
-        data: {
-          merchant_info: result,
-          feature_merchant: getMerchantFeature,
-          merchant_time: {
-            ...getMerchantTime.dataValues,
-            sunday: JSON.parse(getMerchantTime.dataValues.sunday),
-            monday: JSON.parse(getMerchantTime.dataValues.monday),
-            tuesday: JSON.parse(getMerchantTime.dataValues.tuesday),
-            wednesday: JSON.parse(getMerchantTime.dataValues.wednesday),
-            thursday: JSON.parse(getMerchantTime.dataValues.thursday),
-            friday: JSON.parse(getMerchantTime.dataValues.friday),
-            saturday: JSON.parse(getMerchantTime.dataValues.saturday),
+        const getFacility = await facilityModel.findAll({
+          where: {
+            merchantId: result.dataValues.id,
           },
-          facility: getFacility,
-        },
-      });
+        });
+
+        responseJSON({
+          res,
+          status: 200,
+          data: {
+            merchant_info: result,
+            feature_merchant: getMerchantFeature,
+            merchant_time: {
+              ...getMerchantTime.dataValues,
+              sunday: JSON.parse(getMerchantTime.dataValues.sunday),
+              monday: JSON.parse(getMerchantTime.dataValues.monday),
+              tuesday: JSON.parse(getMerchantTime.dataValues.tuesday),
+              wednesday: JSON.parse(getMerchantTime.dataValues.wednesday),
+              thursday: JSON.parse(getMerchantTime.dataValues.thursday),
+              friday: JSON.parse(getMerchantTime.dataValues.friday),
+              saturday: JSON.parse(getMerchantTime.dataValues.saturday),
+            },
+            facility: getFacility,
+          },
+        });
+      }
     } catch (error) {
       responseJSON({
         res,
