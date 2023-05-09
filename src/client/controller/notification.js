@@ -51,9 +51,10 @@ class controllerNotification {
         .filter((filter) => filter.dataValues.room?.userId == userId)
         .map((item) => ({
           ...item.dataValues,
-          status_approved: getListDetailRoomByUserId.filter(
-            (filter) => filter.dataValues.id === item.dataValues.roomDetailId
-          )[0],
+          status_approved:
+            getListDetailRoomByUserId.filter(
+              (filter) => filter.dataValues.id === item.dataValues.roomDetailId
+            )[0] || null,
         }));
 
       responseJSON({
