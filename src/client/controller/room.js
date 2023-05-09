@@ -66,9 +66,20 @@ class controllerRoom {
           },
         });
 
-        if (getDetailRoomByRoomId.id) {
+        const getDetailNotifJoinRoom = await notifJoinRoomModel.findOne({
+          where: {
+            roomId,
+            userId,
+          },
+        });
+
+        if (getDetailRoomByRoomId.id && getDetailNotifJoinRoom.id) {
           const getResultDetailRoomId = await getDetailRoomByRoomId.update({
             status_approved,
+          });
+
+          await getDetailNotifJoinRoom.update({
+            status_notif: "info",
           });
 
           responseJSON({
