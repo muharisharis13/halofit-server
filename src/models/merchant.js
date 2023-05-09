@@ -30,6 +30,10 @@ const merchant = database.define(
       allowNull: false,
       defaultValue: 0,
     },
+    img_merchant: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     timestamps: true,
