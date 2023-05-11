@@ -175,12 +175,23 @@ class controllerTask {
   }
   async createTask(req, res) {
     const { merchantId, task_name, expiredIn, list_task = [], poin } = req.body;
+
+    console.log({ list_task });
     try {
+      if (!req.file) {
+        responseJSON({
+          res,
+          status: 400,
+          data: "File Must be Upload !",
+        });
+      }
+
       const result = await taskMoodel.create({
         merchantId,
         task_name,
         expiredIn,
         poin,
+        banner_img: req.file.filename,
       });
 
       const id = result.id;

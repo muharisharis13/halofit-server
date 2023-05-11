@@ -23,6 +23,10 @@ class uploadFile {
     storage: storageFile("./uploads/merchant"),
     limits: maxSize,
   });
+  uploadBannnerTask = multer({
+    storage: storageFile("./uploads/task"),
+    limits: maxSize,
+  });
 }
 
 module.exports = new uploadFile();
