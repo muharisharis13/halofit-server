@@ -3,6 +3,7 @@ const AuthenticationRouter = require("./authentication");
 const CategoryRouter = require("./category");
 const MerchantRouter = require("./merchant");
 const TaskRouter = require("./task");
+const facilityRouter = require("./facility");
 
 const { pathRouterAdmin } = url;
 
@@ -11,6 +12,7 @@ const Routing = (app) => {
   app.use(pathRouterAdmin("category"), CategoryRouter);
   app.use(pathRouterAdmin("merchant"), MerchantRouter);
   app.use(pathRouterAdmin("task"), TaskRouter);
+  app.use(pathRouterAdmin("facility"), facilityRouter);
 };
 
 module.exports = Routing;

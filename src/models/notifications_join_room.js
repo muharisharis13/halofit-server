@@ -19,7 +19,7 @@ const notifcation_join_room = database.define(
       allowNull: false,
     },
     status_notif: {
-      type: DataTypes.ENUM("request", "info"),
+      type: DataTypes.ENUM("request", "info", "reject"),
       defaultValue: "request",
     },
     show: {
@@ -34,7 +34,7 @@ const notifcation_join_room = database.define(
 );
 
 notifcation_join_room.sync({
-  alter: false,
+  alter: true,
 });
 
 roomModel.hasMany(notifcation_join_room, {

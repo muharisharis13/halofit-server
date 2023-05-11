@@ -176,7 +176,7 @@ class controllerFacility {
       responseJSON({
         res,
         status: 500,
-        data: error.errors?.map((item) => item.message) || error,
+        data: error.errors?.map((item) => item.message) || error.message,
       });
     }
   }

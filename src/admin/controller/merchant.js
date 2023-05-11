@@ -7,6 +7,7 @@ const { getPagination, getPagingData } = paging;
 const { Op } = require("sequelize");
 const featureModel = require("../../models/feature");
 const facilityModel = require("../../models/facility");
+const categoryModel = require("../../models/category");
 
 class controllerMerchant {
   async addFeature(req, res) {
@@ -189,7 +190,21 @@ class controllerMerchant {
           where: {
             merchantId: result?.dataValues?.id,
           },
+          include: [
+            {
+              model: categoryModel,
+            },
+          ],
         });
+
+        const category = await categoryModel.findAll();
+
+        const newCategory = category.map((item) => ({
+          ...item.dataValues,
+          facility: getFacility.filter(
+            (filter) => filter.dataValues?.categoryId == item?.dataValues.id
+          ),
+        }));
 
         responseJSON({
           res,
@@ -210,6 +225,7 @@ class controllerMerchant {
                 }
               : null,
             facility: getFacility,
+            category_facility: newCategory,
           },
         });
       }

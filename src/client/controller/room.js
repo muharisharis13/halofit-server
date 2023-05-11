@@ -78,9 +78,15 @@ class controllerRoom {
             status_approved,
           });
 
-          await getDetailNotifJoinRoom.update({
-            status_notif: "info",
-          });
+          if (status_approved === "reject") {
+            await getDetailNotifJoinRoom.update({
+              status_notif: "reject",
+            });
+          } else {
+            await getDetailNotifJoinRoom.update({
+              status_notif: "info",
+            });
+          }
 
           responseJSON({
             res,

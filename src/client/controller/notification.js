@@ -9,15 +9,11 @@ class controllerNotification {
   async getNotif(req, res) {
     const { userId } = req.params;
     try {
-      const getListDetailRoomByUserId = await roomDetailModel.findAll({
-        where: {
-          userId,
-        },
-      });
-      const getListRequesJoinRoom = await notifJoinRoomModel.findAll({
+      const getListNotifRequesJoinRoom = await notifJoinRoomModel.findAll({
         where: {
           show: true,
           // status_notif: "request",
+          userId,
         },
         attributes: {
           exclude: ["show"],
@@ -25,6 +21,22 @@ class controllerNotification {
         include: [
           {
             model: roomModel,
+
+            include: [
+              {
+                model: userModel,
+                attributes: {
+                  exclude: [
+                    "createdAt",
+                    "updatedAt",
+                    "password",
+                    "balance",
+                    "point",
+                    "pin",
+                  ],
+                },
+              },
+            ],
           },
           {
             model: userModel,
@@ -43,18 +55,14 @@ class controllerNotification {
         ],
       });
 
-      const getStatusByInfo = getListRequesJoinRoom.filter(
-        (filter) => filter.dataValues.status_notif === "info"
-      );
-
-      const newListReqJoinRoom = getListRequesJoinRoom
-        .filter((filter) => filter.dataValues.room?.userId == userId)
+      const newListReqJoinRoom = getListNotifRequesJoinRoom
+        // .filter((filter) => filter.dataValues.room?.userId == userId)
         .map((item) => ({
           ...item.dataValues,
-          status_approved:
-            getListDetailRoomByUserId.filter(
-              (filter) => filter.dataValues.id === item.dataValues.roomDetailId
-            )[0] || null,
+          room: {
+            ...item.dataValues.room.dataValues,
+            isHost: item.dataValues.room.userId == userId,
+          },
         }));
 
       responseJSON({
