@@ -4,8 +4,68 @@ const { responseJSON } = general;
 const { getPagination, getPagingData } = paging;
 const taskMoodel = require("../../models/task");
 const taskDetailMoodel = require("../../models/task_detail");
+const userModel = require("../../models/user");
 
 class controllerTask {
+  async getListTaskUser(req, res) {
+    const {
+      page = 1,
+      size = 10,
+      column_name = "task_name",
+      query = "",
+    } = req.query;
+    const { merchantId } = req.params;
+    const { limit, offset } = getPagination(page, size);
+    try {
+      let getListDetailTask = await taskDetailMoodel.findAll({
+        where: {
+          merchantId,
+        },
+        include: [
+          {
+            model: taskMoodel,
+            as: "task",
+          },
+        ],
+      });
+
+      let getListUser = await userModel.findAndCountAll({
+        attributes: {
+          exclude: ["password", "pin", "balance"],
+        },
+        limit,
+        offset,
+        order: [["id", "DESC"]],
+      });
+
+      getListDetailTask = getListDetailTask.map((item) => ({
+        ...item.dataValues,
+        list_user: item.dataValues?.list_user
+          ? JSON.parse(item.dataValues.list_user)
+          : [],
+      }));
+
+      getListUser = {
+        ...getListUser,
+        rows: getListUser.rows.map((item) => ({
+          ...item.dataValues,
+          list_task: getListDetailTask,
+        })),
+      };
+
+      responseJSON({
+        res,
+        status: 200,
+        data: getPagingData(getListUser, page, limit),
+      });
+    } catch (error) {
+      responseJSON({
+        res,
+        status: 500,
+        data: error.errors?.map((item) => item.message) || error.message,
+      });
+    }
+  }
   async deleteTask(req, res) {
     const { taskId, merchantId } = req.body;
     try {
@@ -198,6 +258,7 @@ class controllerTask {
 
       list_task.map(async (item) => {
         await taskDetailMoodel.create({
+          merchantId,
           taskId: id,
           task_name: item.task_name,
           task_desc: item.task_desc || "",

@@ -12,5 +12,6 @@ router.get("/:merchantId", controllerTask.getListTask);
 router.get("/detail/:merchantId", controllerTask.detailTask);
 router.put("/detail/:merchantId", controllerTask.updateTask);
 router.delete("/", controllerTask.deleteTask);
+router.get("/list-task-user/:merchantId", controllerTask.getListTaskUser);
 
 module.exports = router;

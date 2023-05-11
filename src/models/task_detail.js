@@ -1,10 +1,15 @@
 const { DataTypes } = require("sequelize");
 const database = require("../../database");
+const taskModel = require("./task");
 
 const TaskDetail = database.define(
   "task_detail",
   {
     taskId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    merchantId: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
@@ -26,5 +31,15 @@ const TaskDetail = database.define(
     freezeTableName: true,
   }
 );
+
+TaskDetail.sync({
+  alter: true,
+});
+
+taskModel.hasMany(TaskDetail, {
+  foreignKey: "taskId",
+});
+
+TaskDetail.belongsTo(taskModel);
 
 module.exports = TaskDetail;
