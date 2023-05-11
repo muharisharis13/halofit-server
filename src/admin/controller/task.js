@@ -8,7 +8,14 @@ const userModel = require("../../models/user");
 
 class controllerTask {
   async getListTaskUser(req, res) {
+    const {
+      page = 1,
+      size = 10,
+      column_name = "task_name",
+      query = "",
+    } = req.query;
     const { merchantId } = req.params;
+    const { limit, offset } = getPagination(page, size);
     try {
       let getListDetailTask = await taskDetailMoodel.findAll({
         where: {
@@ -22,10 +29,13 @@ class controllerTask {
         ],
       });
 
-      let getListUser = await userModel.findAll({
+      let getListUser = await userModel.findAndCountAll({
         attributes: {
           exclude: ["password", "pin", "balance"],
         },
+        limit,
+        offset,
+        order: [["id", "DESC"]],
       });
 
       getListDetailTask = getListDetailTask.map((item) => ({
@@ -35,15 +45,18 @@ class controllerTask {
           : [],
       }));
 
-      getListUser = getListUser.map((item) => ({
-        ...item.dataValues,
-        list_task: getListDetailTask,
-      }));
+      getListUser = {
+        ...getListUser,
+        rows: getListUser.rows.map((item) => ({
+          ...item.dataValues,
+          list_task: getListDetailTask,
+        })),
+      };
 
       responseJSON({
         res,
         status: 200,
-        data: getListUser,
+        data: getPagingData(getListUser, page, limit),
       });
     } catch (error) {
       responseJSON({
