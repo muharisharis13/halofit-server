@@ -2,6 +2,7 @@ const { general, paging } = require("../../../utils");
 const categoryModel = require("../../models/category");
 const { responseJSON } = general;
 const { getPagination, getPagingData } = paging;
+const { Op } = require("sequelize");
 
 class controllerCategory {
   async getListCat(req, res) {

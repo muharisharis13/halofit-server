@@ -21,6 +21,22 @@ class controllerNotification {
         include: [
           {
             model: roomModel,
+
+            include: [
+              {
+                model: userModel,
+                attributes: {
+                  exclude: [
+                    "createdAt",
+                    "updatedAt",
+                    "password",
+                    "balance",
+                    "point",
+                    "pin",
+                  ],
+                },
+              },
+            ],
           },
           {
             model: userModel,
