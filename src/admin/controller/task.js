@@ -5,8 +5,118 @@ const { getPagination, getPagingData } = paging;
 const taskMoodel = require("../../models/task");
 const taskDetailMoodel = require("../../models/task_detail");
 const userModel = require("../../models/user");
+const userTaskMode = require("../../models/user_task");
 
 class controllerTask {
+  async updateDetailTaskUser(req, res) {
+    const { userId } = req.params;
+    const { taskDetailId } = req.body;
+    try {
+      let findUserTask = await userTaskMode.findOne({
+        where: {
+          userId,
+        },
+      });
+
+      let arrTaskDetailId = findUserTask?.dataValues?.taskDetailId?.split(",");
+
+      if (arrTaskDetailId?.includes(JSON.stringify(taskDetailId))) {
+        arrTaskDetailId?.filter(
+          (filter) => filter != JSON.stringify(taskDetailId)
+        );
+
+        let newArrDetailId = arrTaskDetailId?.filter(
+          (filter) => filter != JSON.stringify(taskDetailId)
+        );
+
+        findUserTask.update({
+          taskDetailId: newArrDetailId?.join(","),
+        });
+        responseJSON({
+          res,
+          status: 200,
+          data: findUserTask,
+        });
+      } else {
+        let newArrDetailId = [...arrTaskDetailId, taskDetailId];
+        const getDetailTask = await taskDetailMoodel.findAll({});
+
+        const isComplete = getDetailTask
+          .filter(
+            (filter) =>
+              filter.dataValues?.taskId == findUserTask?.dataValues?.taskId
+          )
+          .map((item) =>
+            newArrDetailId
+              ?.filter((filter) => filter != "")
+              ?.map((item) => parseInt(item))
+              ?.includes(parseInt(item.dataValues.id))
+              ? true
+              : false
+          );
+        console.log(
+          "newArrDetailId",
+          newArrDetailId?.filter((filter) => filter != "")
+        );
+        console.log({ isComplete });
+        findUserTask.update({
+          taskDetailId: newArrDetailId?.join(","),
+          status: isComplete.every((val) => val === true)
+            ? "selesai"
+            : "berjalan",
+        });
+
+        responseJSON({
+          res,
+          status: 200,
+          data: findUserTask,
+        });
+      }
+    } catch (error) {
+      responseJSON({
+        res,
+        status: 500,
+        data: error.errors?.map((item) => item.message) || error.message,
+      });
+    }
+  }
+  async getDetailTaskUser(req, res) {
+    const { userId } = req.params;
+    try {
+      let getUserTask = await userTaskMode.findOne({
+        where: {
+          userId,
+        },
+        include: [
+          {
+            model: userModel,
+          },
+        ],
+      });
+      const getDetailTask = await taskDetailMoodel.findAll({
+        raw: true,
+      });
+
+      getUserTask = {
+        ...getUserTask.dataValues,
+        list_task: getDetailTask.filter(
+          (filter) => filter.taskId == getUserTask.dataValues?.taskId
+        ),
+      };
+
+      responseJSON({
+        res,
+        status: 200,
+        data: getUserTask,
+      });
+    } catch (error) {
+      responseJSON({
+        res,
+        status: 500,
+        data: error.errors?.map((item) => item.message) || error.message,
+      });
+    }
+  }
   async getListTaskUser(req, res) {
     const {
       page = 1,
@@ -21,12 +131,6 @@ class controllerTask {
         where: {
           merchantId,
         },
-        include: [
-          {
-            model: taskMoodel,
-            as: "task",
-          },
-        ],
       });
 
       let getListUser = await userModel.findAndCountAll({
@@ -37,6 +141,8 @@ class controllerTask {
         offset,
         order: [["id", "DESC"]],
       });
+
+      const getUserTask = await userTaskMode.findAll();
 
       getListDetailTask = getListDetailTask.map((item) => ({
         ...item.dataValues,
@@ -49,7 +155,10 @@ class controllerTask {
         ...getListUser,
         rows: getListUser.rows.map((item) => ({
           ...item.dataValues,
-          list_task: getListDetailTask,
+          task:
+            getUserTask.find(
+              (filter) => filter.dataValues.userId == item.dataValues.id
+            ) || null,
         })),
       };
 
@@ -100,6 +209,7 @@ class controllerTask {
   async updateTask(req, res) {
     const { merchantId } = req.params;
     const { taskId, task_name, expiredIn, list_task = [], poin } = req.body;
+
     try {
       const getDetailTask = await taskMoodel.findOne({
         where: {
@@ -108,8 +218,12 @@ class controllerTask {
         },
       });
 
-      if (list_task.length > 0) {
-        list_task?.map(async (item) => {
+      let newList_task = JSON.parse(list_task);
+
+      console.log({ list_task });
+
+      if (newList_task.length > 0) {
+        newList_task?.map(async (item) => {
           await taskDetailMoodel
             .findOne({
               where: {
@@ -129,6 +243,7 @@ class controllerTask {
           task_name,
           expiredIn,
           poin,
+          banner_img: req.file?.filename || null,
         });
       }
 
@@ -155,28 +270,36 @@ class controllerTask {
     }
   }
   async detailTask(req, res) {
-    const { merchantId } = req.params;
+    const { taskId } = req.params;
     try {
       const getDetailTask = await taskMoodel.findOne({
         where: {
-          merchantId,
+          id: taskId,
         },
       });
 
-      const getListTask = await taskDetailMoodel.findAll({
-        where: {
-          taskId: getDetailTask.id,
-        },
-      });
+      if (!getDetailTask) {
+        responseJSON({
+          res,
+          status: 200,
+          data: "Task Not Found !",
+        });
+      } else {
+        const getListTask = await taskDetailMoodel.findAll({
+          where: {
+            taskId: taskId,
+          },
+        });
 
-      responseJSON({
-        res,
-        status: 200,
-        data: {
-          ...getDetailTask.dataValues,
-          list_task: getListTask,
-        },
-      });
+        responseJSON({
+          res,
+          status: 200,
+          data: {
+            ...getDetailTask?.dataValues,
+            list_task: getListTask,
+          },
+        });
+      }
     } catch (error) {
       responseJSON({
         res,
@@ -237,6 +360,8 @@ class controllerTask {
     const { merchantId, task_name, expiredIn, list_task = [], poin } = req.body;
 
     console.log({ list_task });
+
+    let newList_task = JSON.parse(list_task);
     try {
       if (!req.file) {
         responseJSON({
@@ -256,7 +381,7 @@ class controllerTask {
 
       const id = result.id;
 
-      list_task.map(async (item) => {
+      newList_task.map(async (item) => {
         await taskDetailMoodel.create({
           merchantId,
           taskId: id,
@@ -277,14 +402,14 @@ class controllerTask {
         status: 200,
         data: {
           task_info: result.dataValues,
-          list_task: list_task,
+          list_task: newList_task,
         },
       });
     } catch (error) {
       responseJSON({
         res,
         status: 500,
-        data: error.errors?.map((item) => item.message) || error,
+        data: error.errors?.map((item) => item.message) || error.message,
       });
     }
   }

@@ -26,6 +26,10 @@ const notifcation_join_room = database.define(
       type: DataTypes.BOOLEAN,
       defaultValue: true,
     },
+    list_user: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     timestamps: true,
@@ -34,7 +38,7 @@ const notifcation_join_room = database.define(
 );
 
 notifcation_join_room.sync({
-  alter: true,
+  alter: false,
 });
 
 roomModel.hasMany(notifcation_join_room, {

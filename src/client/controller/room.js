@@ -6,7 +6,7 @@ const merchantModel = require("../../models/merchant");
 const roomDetailModel = require("../../models/room_detail");
 const notifJoinRoomModel = require("../../models/notifications_join_room");
 const { general, paging } = require("../../../utils");
-const { Op, JSON } = require("sequelize");
+const { Op } = require("sequelize");
 const categoryModel = require("../../models/category");
 const roomDetail = require("../../models/room_detail");
 const { responseJSON } = general;
@@ -23,23 +23,44 @@ class controllerRoom {
     const { user_id } = req.params;
 
     try {
-      const getDetailRoom = await roomDetail.findAll({
-        where: {
-          userId: user_id,
-        },
+      let getRoom = await roomModel.findAll({
         include: [
           {
-            model: roomModel,
-            attributes: {
-              exclude: ["createdAt", "updatedAt"],
-            },
+            model: facilityModel,
+            as: "facility",
+            include: [
+              {
+                model: merchantModel,
+                as: "merchant",
+              },
+            ],
+          },
+          {
+            model: bookingModel,
+            as: "booking",
           },
         ],
       });
+
+      let getDetailRoom = await roomDetail.findAll();
+
+      getRoom = getRoom.map((item) => ({
+        ...item.dataValues,
+        list_user: getDetailRoom.filter(
+          (filter) => filter.dataValues?.roomId == item.dataValues?.id
+        ),
+      }));
+
+      getRoom = getRoom.filter((filter) =>
+        filter?.list_user?.filter((val) => val?.userId == user_id)?.length > 0
+          ? true
+          : false
+      );
+
       responseJSON({
         res,
         status: 200,
-        data: getDetailRoom,
+        data: getRoom,
       });
     } catch (error) {
       responseJSON({
@@ -195,12 +216,33 @@ class controllerRoom {
           userId,
           qty: qty,
         });
-
-        await notifJoinRoomModel.create({
-          roomId,
-          roomDetailId: result?.id,
-          userId,
+        const findNotifByRoom = await notifJoinRoomModel.findOne({
+          where: {
+            roomId,
+            // roomDetailId: result?.id,
+          },
         });
+        console.log({
+          findNotifByRoom: findNotifByRoom?.dataValues?.list_user?.split(","),
+        });
+        if (!findNotifByRoom) {
+          await notifJoinRoomModel.create({
+            roomId,
+            roomDetailId: result?.id,
+            userId: 0,
+            list_user: JSON.stringify([{ userId: userId, status: "request" }]),
+          });
+        } else {
+          findNotifByRoom.update({
+            list_user: JSON.stringify([
+              ...JSON.parse(findNotifByRoom?.dataValues?.list_user),
+              {
+                userId: userId,
+                status: "request",
+              },
+            ]),
+          });
+        }
 
         responseJSON({
           res,
@@ -212,7 +254,7 @@ class controllerRoom {
       responseJSON({
         res,
         status: 400,
-        data: error.errors?.map((item) => item.message),
+        data: error.message,
       });
     }
   }

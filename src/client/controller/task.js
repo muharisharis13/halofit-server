@@ -6,6 +6,7 @@ const { responseJSON } = general;
 const { getPagination, getPagingData } = paging;
 const merchantModel = require("../../models/merchant");
 const moment = require("moment");
+const taskUserModel = require("../../models/user_task");
 
 const diffDays = (date1, date2) => {
   return parseInt(
@@ -54,6 +55,149 @@ class controllerTask {
         res,
         status: 500,
         data: error.errors?.map((item) => item.message) || error,
+      });
+    }
+  }
+  async getDetailTaskProgress(req, res) {
+    const { taskId, userId } = req.params;
+    try {
+      let getOneUserTask = await taskUserModel.findOne({
+        where: {
+          userId,
+          taskId,
+        },
+        include: [
+          {
+            model: taskModel,
+            as: "task",
+            include: [
+              {
+                model: merchantModel,
+                as: "merchant",
+              },
+            ],
+          },
+        ],
+      });
+      const taskDetail = await taskDetailModel.findAll({
+        where: {
+          taskId,
+        },
+      });
+
+      const taskDetailId = () => {
+        return getOneUserTask.dataValues?.taskDetailId
+          ?.split(",")
+          ?.filter((filter) => filter != "");
+      };
+
+      const filterTaskDetail = () => {
+        return taskDetail.filter(
+          (filter) =>
+            filter.dataValues.taskId == getOneUserTask.dataValues.taskId
+        );
+      };
+
+      const currentPoin = () => {
+        return (
+          (taskDetailId()?.length / filterTaskDetail()?.length) *
+          getOneUserTask.dataValues?.task?.poin
+        );
+      };
+
+      getOneUserTask = {
+        ...getOneUserTask.dataValues,
+        taskDetailId: taskDetailId(),
+        task_detail: taskDetail.map((item) => ({
+          ...item.dataValues,
+          status: taskDetailId()?.every((val) => val == item.dataValues?.id),
+        })),
+        currentPoin: currentPoin(),
+      };
+
+      responseJSON({
+        res,
+        status: 200,
+        data: getOneUserTask,
+      });
+    } catch (error) {
+      responseJSON({
+        res,
+        status: 500,
+        data: error.message,
+      });
+    }
+  }
+  async getListTaskOnProgress2(req, res) {
+    const { userId } = req.params;
+    try {
+      let getTaskUser = await taskUserModel.findAll({
+        where: {
+          userId,
+          status: "berjalan",
+        },
+        include: [
+          {
+            model: taskModel,
+            include: [
+              {
+                model: merchantModel,
+                as: "merchant",
+              },
+            ],
+          },
+        ],
+      });
+
+      let taskDetail = await taskDetailModel.findAll();
+
+      const filterTaskDetail = (item) => {
+        return taskDetail.filter(
+          (filter) => filter.dataValues.taskId == item.dataValues.taskId
+        );
+      };
+
+      const taskDetailId = (item) => {
+        return item.dataValues?.taskDetailId
+          ?.split(",")
+          ?.filter((filter) => filter != "");
+      };
+
+      const currentPoin = (item) => {
+        return (
+          (taskDetailId(item)?.length / filterTaskDetail(item)?.length) *
+          item.dataValues?.task?.poin
+        );
+      };
+
+      const percentage = (item) => {
+        return (
+          (taskDetailId(item)?.length / filterTaskDetail(item)?.length) * 100
+        );
+      };
+
+      getTaskUser = getTaskUser.map((item) => ({
+        ...item.dataValues,
+        task_detail: filterTaskDetail(item),
+        taskDetailId: taskDetailId(item),
+        current_poin: currentPoin(item),
+        percentage: percentage(item),
+        expiredInDays: diffDays(
+          moment(new Date()).format("YYYY-MM-DD"),
+          moment(new Date(item.dataValues.task.expiredIn)).format("YYYY-MM-DD")
+        ),
+      }));
+
+      responseJSON({
+        res,
+        status: 200,
+        data: getTaskUser,
+      });
+    } catch (error) {
+      responseJSON({
+        res,
+        status: 500,
+        data: error.message,
       });
     }
   }
