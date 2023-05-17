@@ -14,7 +14,7 @@ class controllerMessages {
       responseJSON({
         res: res,
         data: {
-          user: getMessage.map((item) => ({
+          message: getMessage.map((item) => ({
             ...item,
           })),
         },

@@ -1,5 +1,7 @@
 const roomModel = require("../../models/room");
 const userModel = require("../../models/user");
+const categoryModel = require("../../models//category");
+const merchantModel = require("../../models/merchant");
 const { general, paging } = require("../../../utils");
 const { responseJSON } = general;
 const { getPagination, getPagingData } = paging;
@@ -21,7 +23,7 @@ class controllerRoom {
         res,
         status: 200,
         data: {
-          task_info: getRoom,
+          room_info: getRoom,
         },
       });
     } catch (error) {

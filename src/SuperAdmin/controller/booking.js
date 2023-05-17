@@ -2,6 +2,7 @@ const bookingModel = require("../../models/booking");
 const userModel = require("../../models/user");
 const { general, paging } = require("../../../utils");
 const { responseJSON } = general;
+const facilityModel = require("../../models/facility");
 const { getPagination, getPagingData } = paging;
 
 class controllerBooking {
@@ -13,6 +14,9 @@ class controllerBooking {
             model: userModel,
             as: "user",
             attributes: ["username", "email", "gender", "point"],
+            model: facilityModel,
+            as: "facility",
+            attributes: ["facility_name"],
           },
         ],
       });
@@ -21,7 +25,7 @@ class controllerBooking {
         res,
         status: 200,
         data: {
-          task_info: getBooking,
+          booking: getBooking,
         },
       });
     } catch (error) {

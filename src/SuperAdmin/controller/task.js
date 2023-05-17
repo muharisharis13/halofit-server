@@ -15,11 +15,6 @@ class controllerTask {
             as: "merchant",
             attributes: ["id", "email", "merchant_name", "address"],
           },
-          {
-            model: merchantModel,
-            as: "merchant",
-            attributes: ["id", "email", "merchant_name", "address"],
-          },
         ],
       });
 

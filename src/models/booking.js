@@ -1,6 +1,7 @@
 const { DataTypes } = require("sequelize");
 const database = require("../../database");
 const userModel = require("./user");
+const facilityModel = require("./facility");
 
 const booking = database.define(
   "booking",
@@ -45,6 +46,11 @@ booking.sync({
 userModel.hasMany(booking, {
   foreignKey: "userId",
 });
+facilityModel.hasMany(booking, {
+  foreignKey: "facilityId",
+});
+
+booking.belongsTo(facilityModel);
 
 booking.belongsTo(userModel);
 

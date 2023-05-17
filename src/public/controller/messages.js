@@ -4,12 +4,13 @@ const messageModel = require("../../models/messages");
 
 class controllerMessages {
   async addMessage(req, res) {
-    const { name, message } = req.body;
+    const { name, message, email } = req.body;
 
     try {
       const result = await messageModel.create({
         name,
         message,
+        email,
       });
 
       responseJSON({
