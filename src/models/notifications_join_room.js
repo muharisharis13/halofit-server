@@ -34,7 +34,7 @@ const notifcation_join_room = database.define(
 );
 
 notifcation_join_room.sync({
-  alter: true,
+  alter: false,
 });
 
 roomModel.hasMany(notifcation_join_room, {

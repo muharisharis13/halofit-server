@@ -7,6 +7,7 @@ const Middleware = require("./midleware");
 const Database = require("./database");
 const Routing = require("./src/client/routing");
 const RoutingAdmin = require("./src/admin/routing");
+const RoutingSuperAdmin = require("./src/SuperAdmin/routing");
 
 // Midleware ====
 
@@ -16,6 +17,7 @@ Middleware({ app, bodyParser, cors, express });
 // Routing ======
 Routing(app);
 RoutingAdmin(app);
+RoutingSuperAdmin(app);
 // end Routing =====
 
 Database.authenticate()

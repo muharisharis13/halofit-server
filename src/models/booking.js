@@ -1,5 +1,6 @@
 const { DataTypes } = require("sequelize");
 const database = require("../../database");
+const userModel = require("./user");
 
 const booking = database.define(
   "booking",
@@ -38,7 +39,13 @@ const booking = database.define(
 );
 
 booking.sync({
-  alter: true,
+  alter: false,
 });
+
+userModel.hasMany(booking, {
+  foreignKey: "userId",
+});
+
+booking.belongsTo(userModel);
 
 module.exports = booking;

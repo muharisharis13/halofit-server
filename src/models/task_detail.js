@@ -33,7 +33,7 @@ const TaskDetail = database.define(
 );
 
 TaskDetail.sync({
-  alter: true,
+  alter: false,
 });
 
 taskModel.hasMany(TaskDetail, {
