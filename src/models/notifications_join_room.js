@@ -26,6 +26,10 @@ const notifcation_join_room = database.define(
       type: DataTypes.BOOLEAN,
       defaultValue: true,
     },
+    list_user: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     timestamps: true,

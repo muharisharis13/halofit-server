@@ -10,6 +10,87 @@ const facilityModel = require("../../models/facility");
 const categoryModel = require("../../models/category");
 
 class controllerMerchant {
+  async updateMerchantTime(req, res) {
+    const { merchantId, day_name, open, close } = req.body;
+    try {
+      const findMerchantTime = await merchantTimeModel.findOne({
+        where: {
+          merchantId,
+        },
+      });
+
+      if (findMerchantTime[day_name] && open && close) {
+        findMerchantTime.update({
+          [day_name]: "",
+        });
+        responseJSON({
+          res,
+          status: 200,
+          data: findMerchantTime,
+        });
+      } else {
+        findMerchantTime.update({
+          [day_name]: JSON.stringify([open, close]),
+        });
+        responseJSON({
+          res,
+          status: 200,
+          data: findMerchantTime,
+        });
+      }
+    } catch (error) {
+      responseJSON({
+        res,
+        status: 500,
+        data: error.message,
+      });
+    }
+  }
+  async editMerchant(req, res) {
+    const { merchantId } = req.params;
+    const {
+      merchant_name,
+      address,
+      desc,
+      merchant_feature = [],
+      merchant_time,
+    } = req.body;
+    try {
+      await merchantModel
+        .findOne({
+          where: {
+            id: merchantId,
+          },
+        })
+        .then((result) => {
+          if (result) {
+            result.update({
+              merchant_name,
+              address,
+              desc,
+            });
+          }
+        });
+
+      responseJSON({
+        res,
+        status: 200,
+        data: {
+          merchant_name,
+          address,
+          desc,
+          merchant_feature,
+          merchant_time,
+        },
+      });
+    } catch (error) {
+      responseJSON({
+        res,
+        status: 500,
+        data: error.message,
+      });
+    }
+  }
   async addFeature(req, res) {
     const { merchantId = 2, featureId = 1 } = req.body;
     try {
@@ -215,13 +296,27 @@ class controllerMerchant {
             merchant_time: getMerchantTime
               ? {
                   ...getMerchantTime.dataValues,
-                  sunday: JSON.parse(getMerchantTime.dataValues.sunday),
-                  monday: JSON.parse(getMerchantTime.dataValues.monday),
-                  tuesday: JSON.parse(getMerchantTime.dataValues.tuesday),
-                  wednesday: JSON.parse(getMerchantTime.dataValues.wednesday),
-                  thursday: JSON.parse(getMerchantTime.dataValues.thursday),
-                  friday: JSON.parse(getMerchantTime.dataValues.friday),
-                  saturday: JSON.parse(getMerchantTime.dataValues.saturday),
+                  sunday:
+                    getMerchantTime.dataValues.sunday &&
+                    JSON.parse(getMerchantTime.dataValues.sunday),
+                  monday:
+                    getMerchantTime.dataValues.monday &&
+                    JSON.parse(getMerchantTime.dataValues.monday),
+                  tuesday:
+                    getMerchantTime.dataValues.tuesday &&
+                    JSON.parse(getMerchantTime.dataValues.tuesday),
+                  wednesday:
+                    getMerchantTime.dataValues.wednesday &&
+                    JSON.parse(getMerchantTime.dataValues.wednesday),
+                  thursday:
+                    getMerchantTime.dataValues.thursday &&
+                    JSON.parse(getMerchantTime.dataValues.thursday),
+                  friday:
+                    getMerchantTime.dataValues.friday &&
+                    JSON.parse(getMerchantTime.dataValues.friday),
+                  saturday:
+                    getMerchantTime.dataValues.saturday &&
+                    JSON.parse(getMerchantTime.dataValues.saturday),
                 }
               : null,
             facility: getFacility,

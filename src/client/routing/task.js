@@ -12,5 +12,15 @@ router.get(
   isAuthenticationToken,
   controllerTask.getListTaskOnProgress
 );
+router.get(
+  "/progress2/:userId",
+  isAuthenticationToken,
+  controllerTask.getListTaskOnProgress2
+);
+router.get(
+  "/progress/detail/:userId/:taskId",
+  isAuthenticationToken,
+  controllerTask.getDetailTaskProgress
+);
 
 module.exports = router;

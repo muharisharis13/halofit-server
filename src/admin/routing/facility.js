@@ -11,4 +11,10 @@ router.post(
   controllerFacility.addFacility
 );
 
+router.get(
+  "/",
+  isAuthenticationTokenMerchant,
+  controllerFacility.getListFacility
+);
+
 module.exports = router;
