@@ -18,6 +18,10 @@ class uploadFile {
     storage: storageFile("./uploads/banner"),
     limits: maxSize,
   });
+  uploadBannner = multer({
+    storage: storageFile("./uploads/promo"),
+    limits: maxSize,
+  });
 
   uploadBannerMerchant = multer({
     storage: storageFile("./uploads/merchant"),
