@@ -4,10 +4,6 @@ const database = require("../../database");
 const message = database.define(
   "message",
   {
-    messageId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
     name: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -22,5 +18,7 @@ const message = database.define(
     freezeTableName: true,
   }
 );
-
+message.sync({
+  alter: false,
+});
 module.exports = message;

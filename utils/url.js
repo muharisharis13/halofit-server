@@ -2,6 +2,7 @@ class url {
   pathRouterClient = (nameRouter) => `/api/v1/client/${nameRouter}`;
   pathRouterAdmin = (nameRouter) => `/api/v1/admin/${nameRouter}`;
   pathRouterSuperAdmin = (nameRouter) => `/api/v1/superadmin/${nameRouter}`;
+  pathRouterPublic = (nameRouter) => `/api/v1/public/${nameRouter}`;
 
   pathBanner = "/view/image/banner";
   fullURL = (req) => {
