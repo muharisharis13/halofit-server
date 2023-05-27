@@ -22,7 +22,10 @@ class uploadFile {
     storage: storageFile("./uploads/promo"),
     limits: maxSize,
   });
-
+  uploadBannerSuperAdmin = multer({
+    storage: storageFile("./uploads/banner_superAdmin"),
+    limits: maxSize,
+  });
   uploadBannerMerchant = multer({
     storage: storageFile("./uploads/merchant"),
     limits: maxSize,
