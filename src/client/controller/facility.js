@@ -215,6 +215,29 @@ class controllerFacility {
       });
     }
   }
+
+  async getDetailMerchant(req, res) {
+    const { merchantId } = req.params;
+    try {
+      const merchantData = await merchantModel.findOne({
+        where: {
+          id: merchantId,
+        },
+      });
+
+      responseJSON({
+        res,
+        status: 200,
+        data: merchantData,
+      });
+    } catch (error) {
+      responseJSON({
+        res,
+        status: 400,
+        data: error.message,
+      });
+    }
+  }
 }
 
 module.exports = new controllerFacility();

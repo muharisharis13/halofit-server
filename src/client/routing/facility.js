@@ -19,5 +19,9 @@ router.post(
   isAuthenticationToken,
   controllerFacility.getTimePlay
 );
+router.get(
+  "/merchant/detail/:merchantId",
+  controllerFacility.getDetailMerchant
+);
 
 module.exports = router;
