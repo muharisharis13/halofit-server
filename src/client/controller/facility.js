@@ -217,18 +217,27 @@ class controllerFacility {
   }
 
   async getDetailMerchant(req, res) {
-    const { merchantId } = req.params;
+    const { facilityId } = req.params;
     try {
+      const facilityData = await facilityModel.findOne({
+        where: {
+          id: facilityId,
+        },
+      });
+
       const merchantData = await merchantModel.findOne({
         where: {
-          id: merchantId,
+          id: facilityData.dataValues?.merchantId,
         },
       });
 
       responseJSON({
         res,
         status: 200,
-        data: merchantData,
+        data: {
+          ...merchantData.dataValues,
+          facility_info: facilityData,
+        },
       });
     } catch (error) {
       responseJSON({
