@@ -20,7 +20,7 @@ router.post(
   controllerFacility.getTimePlay
 );
 router.get(
-  "/merchant/detail/:merchantId",
+  "/merchant/detail/:facilityId",
   controllerFacility.getDetailMerchant
 );
 
