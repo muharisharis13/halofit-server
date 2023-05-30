@@ -23,6 +23,11 @@ const roomDetail = database.define(
       type: DataTypes.ENUM("approved", "reject", "unapproved"),
       defaultValue: "unapproved",
     },
+    payment: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0
+    }
   },
   {
     timestamps: true,

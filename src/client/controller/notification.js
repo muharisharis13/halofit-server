@@ -175,8 +175,8 @@ class controllerNotification {
           .map((item) => ({
             ...item.dataValues,
             room: {
-              ...item.dataValues.room.dataValues,
-              isHost: item.dataValues.room.userId == userId,
+              ...item.dataValues?.room?.dataValues,
+              isHost: item.dataValues?.room?.userId == userId,
             },
             list_user: JSON.parse(item.dataValues?.list_user)?.map((item) => ({
               ...item,
@@ -188,7 +188,7 @@ class controllerNotification {
           }))
           ?.filter((filter) =>
             filter.list_user?.find((find) => find.userId == userId) ||
-            filter?.room?.isHost == true
+              filter?.room?.isHost == true
               ? true
               : false
           ) || getListNotifRequesJoinRoom;
@@ -202,7 +202,7 @@ class controllerNotification {
       responseJSON({
         res,
         status: 500,
-        data: error.errors?.map((item) => item.message) || error.message,
+        data: error.message,
       });
     }
   }
