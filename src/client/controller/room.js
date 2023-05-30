@@ -242,6 +242,7 @@ class controllerRoom {
       const getRoom = await roomModel.findOne({
         where: {
           userId: user_id,
+          visibility: true
         },
         include: [
           {

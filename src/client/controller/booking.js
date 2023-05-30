@@ -66,6 +66,7 @@ class controllerBooking {
       [`$${column_name}$`]: {
         [Op.like]: `%${query ?? ""}%`,
       },
+      show: true
     };
     try {
       const getListBooking = await bookingModel.findAndCountAll({
@@ -121,15 +122,15 @@ class controllerBooking {
         userId,
         time: time
           ? JSON.stringify(
-              JSON.parse(time).map((item, idx) => {
-                if (idx + 1 === time.length) {
-                  const getHours = item.split(":")[0];
-                  return `${getHours}:00`;
-                } else {
-                  return item;
-                }
-              })
-            )
+            JSON.parse(time).map((item, idx) => {
+              if (idx + 1 === time.length) {
+                const getHours = item.split(":")[0];
+                return `${getHours}:00`;
+              } else {
+                return item;
+              }
+            })
+          )
           : [],
       });
 

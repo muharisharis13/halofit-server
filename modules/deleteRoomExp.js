@@ -9,21 +9,26 @@ const moment = require("moment")
 const result = async () => {
   const currentDate = new Date();
   try {
-    const result = await roomModel.destroy({
+    const result = await roomModel.update({
       where: {
         room_expired: {
           [Op.lt]: currentDate
         }
       }
+    }, {
+      show: false
     })
 
-    const resultBooking = await bookingModel.destroy({
+    const resultBooking = await bookingModel.update({
       where: {
         booking_date: {
           [Op.lte]: moment(currentDate).format("YYYY-MM-DD")
         }
       }
-    })
+    },
+      {
+        visibility: 0
+      })
 
     console.log({ result: result, resultBooking, date: moment(currentDate).format("YYYY-MM-DD") })
   } catch (error) {
