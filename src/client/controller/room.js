@@ -12,13 +12,113 @@ const roomDetail = require("../../models/room_detail");
 const { responseJSON } = general;
 const { getPagination, getPagingData } = paging;
 
+
 const getOneDayTimeStamps = (date) => {
   let newDate = new Date(new Date(date).getTime() + 24 * 60 * 60 * 1000);
 
   return newDate;
 };
 
+
+const paymentUser = async (userId, payment) => {
+  try {
+    const result = await userModel.findOne({
+      where: {
+        id: userId
+      }
+    })
+
+    return result.update({
+      balance: parseInt(result?.dataValues?.balance) - parseInt(payment)
+    })
+  } catch (error) {
+    return error.message
+  }
+}
+
 class controllerRoom {
+  async StartRoom(req, res) {
+    const { roomId, userId } = req.body
+    try {
+      const result = await roomModel.findOne({
+        where: {
+          id: roomId,
+          userId
+        }
+      })
+
+      const getDetailRoom = await roomDetailModel.findAll({
+        where: {
+          roomId: roomId
+        }
+      })
+      const getBooking = await bookingModel.findOne({
+        where: {
+          id: result?.dataValues?.bookingId
+        }
+      })
+
+      const getUser = await userModel.findOne({
+        where: {
+          id: result?.dataValues?.userId
+        }
+      })
+      const getFacility = await facilityModel.findOne({
+        where: {
+          id: result?.dataValues?.facilityId
+        }
+      })
+      const getMerchant = await merchantModel.findOne({
+        where: {
+          id: getFacility?.dataValues?.merchantId
+        }
+      })
+
+      const getAllPayment = getDetailRoom.map(item => item.dataValues.payment).reduce((accumulator, currentValue) => accumulator + currentValue, 0)
+      const getTotalPayment = getBooking?.dataValues?.total
+
+      const finalPayment = getAllPayment - getTotalPayment
+
+      if (finalPayment > 0) {
+
+        getUser.update({ //pengembalian dana dp ke user
+          balance: parseInt(getUser.dataValues?.balance) + parseInt(finalPayment)
+        })
+        result.update({ // merubah status dari waiting ke playing
+          status_room: "playing"
+        })
+
+        getMerchant.update({
+          balance: getTotalPayment
+        })
+
+
+        responseJSON({
+          res,
+          status: 200,
+          data: "success"
+        })
+      }
+      else {
+        responseJSON({
+          res,
+          status: 200,
+          data: "Pembayaran Masih Berkurang"
+        })
+      }
+      // responseJSON({
+      //   res,
+      //   status: 200,
+      //   data: { getDetailRoom, getAllPayment, result, getBooking, getTotalPayment, finalPayment, getUser, getFacility, getMerchant },
+      // });
+    } catch (error) {
+      responseJSON({
+        res,
+        status: 400,
+        data: error.message,
+      });
+    }
+  }
   async getOwnRoom(req, res) {
     const { user_id } = req.params;
 
@@ -142,6 +242,7 @@ class controllerRoom {
       const getRoom = await roomModel.findOne({
         where: {
           userId: user_id,
+          visibility: true
         },
         include: [
           {
@@ -194,8 +295,33 @@ class controllerRoom {
       });
     }
   }
+  async cancelJoin(req, res) {
+    const { roomId, userId } = req.body
+    try {
+      const result = await roomDetail.findOne({
+        where: {
+          roomId,
+          userId
+        }
+      })
+
+      await result.destroy();
+
+      responseJSON({
+        res,
+        status: 200,
+        data: result,
+      });
+    } catch (error) {
+      responseJSON({
+        res,
+        status: 400,
+        data: error.message,
+      });
+    }
+  }
   async joinRoom(req, res) {
-    const { roomId, userId, qty } = req.body;
+    const { roomId, userId, qty, payment } = req.body;
     try {
       const findUserInRoomDetail = await roomDetailModel.findOne({
         where: {
@@ -215,6 +341,7 @@ class controllerRoom {
           roomId,
           userId,
           qty: qty,
+          payment
         });
         const findNotifByRoom = await notifJoinRoomModel.findOne({
           where: {
@@ -222,9 +349,7 @@ class controllerRoom {
             // roomDetailId: result?.id,
           },
         });
-        console.log({
-          findNotifByRoom: findNotifByRoom?.dataValues?.list_user?.split(","),
-        });
+        paymentUser(userId, payment)
         if (!findNotifByRoom) {
           await notifJoinRoomModel.create({
             roomId,
@@ -434,6 +559,7 @@ class controllerRoom {
         [Op.like]: `%${query ?? ""}%`,
       },
       visibility: true,
+      status_room: "waiting"
     };
     try {
       const getListRoom = await roomModel.findAndCountAll({
@@ -520,6 +646,8 @@ class controllerRoom {
       room_desc,
       hostId,
       bookingId,
+      payment,
+      room_expired
     } = req.body;
     try {
       const result = await roomModel.create({
@@ -530,7 +658,8 @@ class controllerRoom {
         max_capacity,
         room_desc,
         userId: hostId,
-        room_expired: new Date(getOneDayTimeStamps(new Date())),
+        room_expired: new Date(room_expired),
+        // room_expired: new Date(getOneDayTimeStamps(new Date())),
         bookingId,
       });
 
@@ -540,7 +669,10 @@ class controllerRoom {
           userId: hostId,
           qty: 1,
           status_approved: "approved",
+          payment: payment
         });
+
+        paymentUser(hostId, payment)
 
         if (postToRoomDetail?.id) {
           responseJSON({

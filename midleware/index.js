@@ -1,5 +1,7 @@
 const { url } = require("../utils");
 const expressip = require("express-ip");
+var cron = require('node-cron');
+const deleteRoom = require("../modules/deleteRoomExp")
 
 const { pathBanner } = url;
 
@@ -15,6 +17,11 @@ const Middleware = ({ app, bodyParser, cors, express }) => {
   // file static upload
 
   app.use(pathBanner, express.static("./uploads/banner"));
+
+  cron.schedule('* * * * *', () => {
+    console.log('running a task every minute');
+    deleteRoom()
+  });
 };
 
 module.exports = Middleware;

@@ -32,6 +32,10 @@ const booking = database.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    show: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true
+    }
   },
   {
     timestamps: true,
