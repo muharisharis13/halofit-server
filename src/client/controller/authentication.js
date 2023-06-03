@@ -69,6 +69,7 @@ class controllerAuthentication {
         where: {
           username,
           password: hash(password),
+          status: "approved",
         },
         attributes: {
           exclude: ["password", "pin"],
@@ -118,7 +119,14 @@ class controllerAuthentication {
   }
 
   async register(req, res) {
-    const { username, email, password, gender, pin } = req.body;
+    const {
+      username,
+      email,
+      password,
+      gender,
+      pin,
+      status = "approved",
+    } = req.body;
     try {
       const result = await userModel.create({
         username,
@@ -128,6 +136,7 @@ class controllerAuthentication {
         gender: "",
         pin: hash(pin),
         balance: 0,
+        status,
       });
 
       const getUser = await userModel.findOne({

@@ -12,6 +12,7 @@ class controllerAuthentication {
       const getMerchant = await merchanModel.findOne({
         where: {
           email,
+          status: "approved",
           password: hash(password),
         },
         attributes: {
@@ -68,6 +69,7 @@ class controllerAuthentication {
         merchant_name,
         address,
         desc,
+        status: "",
       });
 
       const getMerchant = await merchanModel.findOne({

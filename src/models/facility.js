@@ -55,11 +55,11 @@ facility.sync({
 merchantModel.hasMany(facility, {
   foreignKey: "merchantId",
 });
-facility.belongsTo(merchantModel);
 
 categoryModel.hasMany(facility, {
   foreignKey: "categoryId",
 });
 facility.belongsTo(categoryModel);
+facility.belongsTo(merchantModel);
 
 module.exports = facility;

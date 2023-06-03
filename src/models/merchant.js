@@ -34,6 +34,10 @@ const merchant = database.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    status: {
+      type: DataTypes.ENUM("approved", "blocked"),
+      allowNull: true,
+    },
   },
   {
     timestamps: true,

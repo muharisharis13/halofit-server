@@ -7,6 +7,7 @@ const bookingRouter = require("./booking");
 const roomRouter = require("./Meetup");
 const messageRouter = require("./messages");
 const bannerRouter = require("./banner");
+const sendEmailRouter = require("./email");
 
 const { pathRouterSuperAdmin } = url;
 
@@ -19,6 +20,7 @@ const Routing = (app) => {
   app.use(pathRouterSuperAdmin("room"), roomRouter);
   app.use(pathRouterSuperAdmin("message"), messageRouter);
   app.use(pathRouterSuperAdmin("banner"), bannerRouter);
+  app.use(pathRouterSuperAdmin("email"), sendEmailRouter);
 };
 
 module.exports = Routing;

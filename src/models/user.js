@@ -43,6 +43,10 @@ const user = database.define(
       allowNull: false,
       defaultValue: 0,
     },
+    status: {
+      type: DataTypes.ENUM("approved", "blocked"),
+      allowNull: true,
+    },
   },
   {
     timestamps: true,
