@@ -297,7 +297,7 @@ class controllerRoom {
     }
   }
   async cancelJoin(req, res) {
-    const { roomId, userId, isHost = false, bookingId } = req.body;
+    const { roomId, userId, isHost, bookingId } = req.body;
 
     if (isHost === true) {
       try {
