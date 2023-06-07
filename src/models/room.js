@@ -62,8 +62,8 @@ const room = database.define(
     },
     status_room: {
       type: DataTypes.ENUM("waiting", "playing"),
-      defaultValue: "waiting"
-    }
+      defaultValue: "waiting",
+    },
   },
   {
     timestamps: true,

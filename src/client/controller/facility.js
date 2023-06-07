@@ -52,6 +52,7 @@ class controllerFacility {
         where: {
           facilityId,
           booking_date: selected_date,
+          show: 1,
         },
         order: [["createdAt", "DESC"]],
         raw: true,

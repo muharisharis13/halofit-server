@@ -26,7 +26,7 @@ const booking = database.define(
     },
     userId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
     },
     time: {
       type: DataTypes.STRING,
@@ -34,8 +34,8 @@ const booking = database.define(
     },
     show: {
       type: DataTypes.BOOLEAN,
-      defaultValue: true
-    }
+      defaultValue: true,
+    },
   },
   {
     timestamps: true,
@@ -50,12 +50,12 @@ booking.sync({
 userModel.hasMany(booking, {
   foreignKey: "userId",
 });
+
 facilityModel.hasMany(booking, {
   foreignKey: "facilityId",
 });
 
 booking.belongsTo(facilityModel);
-
 booking.belongsTo(userModel);
 
 module.exports = booking;

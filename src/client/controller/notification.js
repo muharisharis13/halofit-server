@@ -41,6 +41,20 @@ class controllerNotification {
               getRoomDetail.update({
                 status_approved: "reject",
               });
+
+              await userModel
+                .findOne({
+                  where: {
+                    id: userIdRequestJoin,
+                  },
+                })
+                .then((result) => {
+                  result.update({
+                    balance:
+                      parseInt(result?.dataValues?.balance) +
+                      getRoomDetail?.dataValues?.payment,
+                  });
+                });
               responseJSON({
                 res,
                 status: 200,
@@ -188,7 +202,7 @@ class controllerNotification {
           }))
           ?.filter((filter) =>
             filter.list_user?.find((find) => find.userId == userId) ||
-              filter?.room?.isHost == true
+            filter?.room?.isHost == true
               ? true
               : false
           ) || getListNotifRequesJoinRoom;

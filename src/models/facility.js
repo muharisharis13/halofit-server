@@ -59,6 +59,7 @@ merchantModel.hasMany(facility, {
 categoryModel.hasMany(facility, {
   foreignKey: "categoryId",
 });
+
 facility.belongsTo(categoryModel);
 facility.belongsTo(merchantModel);
 

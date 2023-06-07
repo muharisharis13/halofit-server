@@ -1,4 +1,7 @@
 const nodemailer = require("nodemailer");
+const messageModel = require("../../models/messages");
+const { general } = require("../../../utils");
+const { responseJSON } = general;
 
 class controllerMail {
   async sendEmail(req, res) {
@@ -25,6 +28,33 @@ class controllerMail {
         res.send("Email sent successfully");
       }
     });
+  }
+
+  async updateStatusMessages(req, res) {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    try {
+      await messageModel
+        .findOne({
+          where: {
+            id,
+          },
+        })
+        .then((result) => {
+          if (result) {
+            result.update({
+              status,
+            });
+          }
+        });
+    } catch (error) {
+      responseJSON({
+        res: res,
+        data: error.errors?.map((item) => item.message) || error,
+        status: 500,
+      });
+    }
   }
 }
 module.exports = new controllerMail();

@@ -135,7 +135,7 @@ class controllerTask {
 
       let getListUser = await userModel.findAndCountAll({
         attributes: {
-          exclude: ["password", "pin", "balance"],
+          exclude: ["password", "pin", "balance", "status"],
         },
         limit,
         offset,

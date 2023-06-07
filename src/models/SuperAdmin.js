@@ -20,8 +20,8 @@ const SuperAdmin = database.define(
     },
     balance: {
       type: DataTypes.INTEGER,
-      defaultValue: 0
-    }
+      defaultValue: 0,
+    },
   },
   {
     timestamps: true,

@@ -14,6 +14,7 @@ router.post(
   controllerFacility.createFacility
 );
 router.get("/", isAuthenticationToken, controllerFacility.getListFacility);
+
 router.post(
   "/time/:facilityId",
   isAuthenticationToken,

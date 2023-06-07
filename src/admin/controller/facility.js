@@ -3,6 +3,25 @@ const { general } = require("../../../utils");
 const { responseJSON } = require("../../../utils/general");
 const { getPagination, getPagingData } = require("../../../utils/paging");
 const facilityModel = require("../../models/facility");
+const bookingModel = require("../../models/booking");
+const userModel = require("../../models/user");
+
+const getListTIme = (time) => {
+  if (time[0]) {
+    const getOpenTime = time[0].split(":")[0].split("0")[1];
+    let arrTime = [];
+
+    for (let i = 0; i <= getOpenTime; i++) {
+      arrTime.push(parseInt(getOpenTime) + parseInt(i));
+    }
+
+    arrTime = arrTime.map((item) => (item < 10 ? `0${item}:00` : `${item}:00`));
+
+    return arrTime;
+  } else {
+    return [];
+  }
+};
 
 class controllerMerchant {
   async getListFacility(req, res) {
@@ -41,9 +60,104 @@ class controllerMerchant {
       });
     }
   }
+
+  async getBookingFacility(req, res) {
+    const { merchantId } = req.params;
+    try {
+      const getFacility = await facilityModel.findAll({
+        where: {
+          merchantId,
+        },
+      });
+
+      responseJSON({
+        res,
+        status: 200,
+        data: getFacility,
+      });
+    } catch (error) {
+      responseJSON({
+        res,
+        status: 500,
+        data: error.errors?.map((item) => item.message),
+      });
+    }
+  }
+
+  async getTimePlay(req, res) {
+    const { facilityId } = req.params;
+    const { merchantId, selected_date } = req.body;
+    try {
+      const resultFacility = await facilityModel.findOne({
+        where: {
+          merchantId,
+          id: facilityId,
+        },
+      });
+
+      const getBooking = await bookingModel.findAll({
+        where: {
+          facilityId,
+          booking_date: selected_date,
+        },
+        include: [
+          {
+            model: userModel,
+            as: "user",
+            attributes: {
+              exclude: ["password", "createdAt", "updatedAt"],
+            },
+          },
+        ],
+        order: [["createdAt", "DESC"]],
+      });
+      const timeBooking = getBooking
+        ? getBooking.map((item) => JSON.parse(item.time))
+        : [];
+
+      const letNewTime = timeBooking.reduce((acc, val) => acc.concat(val), []);
+
+      const data = {
+        ...resultFacility.dataValues,
+        time: resultFacility.dataValues.time
+          ? JSON.parse(resultFacility.dataValues.time)
+          : [],
+        list_time: resultFacility.dataValues.time
+          ? getListTIme(JSON.parse(resultFacility.dataValues.time))
+          : [],
+      };
+
+      const newData = {
+        ...data,
+        list_time: data.list_time?.map((item) => ({
+          time: item,
+          available: !letNewTime.includes(item),
+          ...(letNewTime.includes(item)
+            ? {
+                username: getBooking[0]?.user?.username,
+                phone_number: getBooking[0]?.user?.phone_number,
+              }
+            : {}),
+        })),
+      };
+
+      console.log({ letNewTime });
+
+      responseJSON({
+        res,
+        status: 200,
+        data: newData,
+      });
+    } catch (error) {
+      responseJSON({
+        res,
+        status: 500,
+        data: error.errors?.map((item) => item.message) || error.message,
+      });
+    }
+  }
   async addFacility(req, res) {
     const { merchantId, facility_name, price, categoryId, time } = req.body;
-
     try {
       if (req.file) {
         const result = await facilityModel.create({

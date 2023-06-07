@@ -5,6 +5,6 @@ const { token } = require("../../../utils");
 
 const { isAuthenticationToken } = token;
 
-router.get(`/:user_id`, isAuthenticationToken, controllerUser.getDetailUser);
+router.get(`/:userId`, isAuthenticationToken, controllerUser.getDetailUser);
 
 module.exports = router;

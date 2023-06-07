@@ -61,7 +61,15 @@ class controllerAuthentication {
     }
   }
   async register(req, res) {
-    const { password, email, merchant_name, address, desc } = req.body;
+    const {
+      password,
+      email,
+      merchant_name,
+      address,
+      desc,
+      pin,
+      status = "approved",
+    } = req.body;
     try {
       const result = await merchanModel.create({
         email,
@@ -69,7 +77,8 @@ class controllerAuthentication {
         merchant_name,
         address,
         desc,
-        status: "",
+        pin: hash(pin),
+        status,
       });
 
       const getMerchant = await merchanModel.findOne({

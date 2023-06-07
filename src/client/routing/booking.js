@@ -20,7 +20,13 @@ router.put(
   isAuthenticationToken,
   controllerBooking.editBooking
 );
+router.get(
+  "/own/:userId",
+  isAuthenticationToken,
+  controllerBooking.getOwnBooking
+);
 router.get("/", isAuthenticationToken, controllerBooking.getListBooking);
 router.post("/", isAuthenticationToken, controllerBooking.createBooking);
+router.post("/cancel", isAuthenticationToken, controllerBooking.cancelBooking);
 
 module.exports = router;

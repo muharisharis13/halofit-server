@@ -4,11 +4,14 @@ const { responseJSON } = general;
 
 class controllerUser {
   async getDetailUser(req, res) {
-    const { user_id } = req.params;
+    const { userId } = req.params;
     try {
       const result = await userModel.findOne({
         where: {
-          id: user_id,
+          id: userId,
+        },
+        attributes: {
+          exclude: ["pin", "password"],
         },
       });
 

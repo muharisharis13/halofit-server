@@ -16,5 +16,15 @@ router.get(
   isAuthenticationTokenMerchant,
   controllerFacility.getListFacility
 );
+router.post(
+  "/time/:facilityId",
+  isAuthenticationTokenMerchant,
+  controllerFacility.getTimePlay
+);
+router.get(
+  "/:merchantId",
+  isAuthenticationTokenMerchant,
+  controllerFacility.getBookingFacility
+);
 
 module.exports = router;
