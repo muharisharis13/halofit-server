@@ -299,7 +299,7 @@ class controllerRoom {
   async cancelJoin(req, res) {
     const { roomId, userId, isHost = false, bookingId } = req.body;
 
-    if (isHost) {
+    if (isHost === true) {
       try {
         const getRoomDetail = await roomDetail.findAll({
           where: {
