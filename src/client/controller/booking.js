@@ -151,6 +151,20 @@ class controllerBooking {
         limit,
         offset,
         order: [["id", "DESC"]],
+        include: [
+          {
+            model: facilityModel,
+            as: "facility",
+            attributes: ["facility_name"],
+            include: [
+              {
+                model: merchantModel,
+                as: "merchant",
+                attributes: ["address"],
+              },
+            ],
+          },
+        ],
       });
 
       responseJSON({
