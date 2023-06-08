@@ -63,11 +63,11 @@ class controllerAuthentication {
   }
 
   async login(req, res) {
-    const { username, password } = req.body;
+    const { email, password } = req.body;
     try {
       const getUser = await userModel.findOne({
         where: {
-          username,
+          email,
           password: hash(password),
           status: "approved",
         },

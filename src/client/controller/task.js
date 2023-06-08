@@ -59,7 +59,7 @@ class controllerTask {
     }
   }
   async getDetailTaskProgress(req, res) {
-    const { taskId, userId } = req.params;
+    const { userId, taskId } = req.params;
     try {
       let getOneUserTask = await taskUserModel.findOne({
         where: {
@@ -79,46 +79,79 @@ class controllerTask {
           },
         ],
       });
-      const taskDetail = await taskDetailModel.findAll({
-        where: {
-          taskId,
-        },
+
+      if (getOneUserTask) {
+        const taskDetail = await taskDetailModel.findAll({
+          where: {
+            taskId,
+          },
+        });
+
+        const taskDetailId = () => {
+          return getOneUserTask.dataValues?.taskDetailId
+            ?.split(",")
+            ?.filter((filter) => filter != "");
+        };
+
+        const filterTaskDetail = () => {
+          return taskDetail.filter(
+            (filter) =>
+              filter.dataValues?.taskId == getOneUserTask.dataValues.taskId
+          );
+        };
+
+        const currentPoin = () => {
+          return (
+            (taskDetailId()?.length / filterTaskDetail()?.length) *
+            getOneUserTask.dataValues?.task?.poin
+          );
+        };
+
+        getOneUserTask = {
+          ...getOneUserTask.dataValues,
+          taskDetailId: taskDetailId(),
+          task_detail: taskDetail.map((item) => ({
+            ...item?.dataValues,
+            status: taskDetailId()?.every((val) => val == item.dataValues?.id),
+          })),
+          currentPoin: currentPoin(),
+        };
+
+        responseJSON({
+          res,
+          status: 200,
+          data: getOneUserTask,
+        });
+      } else {
+        responseJSON({
+          res,
+          status: 404,
+          data: "User task not found",
+        });
+      }
+    } catch (error) {
+      responseJSON({
+        res,
+        status: 500,
+        data: error.message,
       });
+    }
+  }
 
-      const taskDetailId = () => {
-        return getOneUserTask.dataValues?.taskDetailId
-          ?.split(",")
-          ?.filter((filter) => filter != "");
-      };
-
-      const filterTaskDetail = () => {
-        return taskDetail.filter(
-          (filter) =>
-            filter.dataValues.taskId == getOneUserTask.dataValues.taskId
-        );
-      };
-
-      const currentPoin = () => {
-        return (
-          (taskDetailId()?.length / filterTaskDetail()?.length) *
-          getOneUserTask.dataValues?.task?.poin
-        );
-      };
-
-      getOneUserTask = {
-        ...getOneUserTask.dataValues,
-        taskDetailId: taskDetailId(),
-        task_detail: taskDetail.map((item) => ({
-          ...item.dataValues,
-          status: taskDetailId()?.every((val) => val == item.dataValues?.id),
-        })),
-        currentPoin: currentPoin(),
-      };
+  async doTask(req, res) {
+    const { taskId, userId, status = "berjalan", taskDetailId } = req.body;
+    try {
+      let result = await taskUserModel.create({
+        taskId,
+        userId,
+        status,
+        taskDetailId,
+      });
 
       responseJSON({
         res,
         status: 200,
-        data: getOneUserTask,
+        data: result,
       });
     } catch (error) {
       responseJSON({
@@ -128,6 +161,7 @@ class controllerTask {
       });
     }
   }
+
   async getListTaskOnProgress2(req, res) {
     const { userId } = req.params;
     try {
