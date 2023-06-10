@@ -47,6 +47,19 @@ const user = database.define(
       type: DataTypes.ENUM("approved", "blocked"),
       allowNull: true,
     },
+    bio: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    age: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: 0,
+    },
+    profile_img: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     timestamps: true,

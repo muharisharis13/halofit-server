@@ -8,5 +8,10 @@ router.post(
   isAuthenticationTokenMerchant,
   controllerBooking.createBooking
 );
+router.get(
+  "/:merchantId",
+  isAuthenticationTokenMerchant,
+  controllerBooking.bookingList
+);
 
 module.exports = router;

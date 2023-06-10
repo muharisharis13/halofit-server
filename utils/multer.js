@@ -34,6 +34,10 @@ class uploadFile {
     storage: storageFile("./uploads/task"),
     limits: maxSize,
   });
+  uploadProfilePicture = multer({
+    storage: storageFile("./uploads/profileUser"),
+    limits: maxSize,
+  });
 }
 
 module.exports = new uploadFile();

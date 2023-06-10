@@ -130,6 +130,78 @@ class controllerAuthentication {
       });
     }
   }
+
+  async setupNewPassword(req, res) {
+    const { email, pin, newPassword } = req.body;
+    try {
+      const getMerchant = await merchanModel.findOne({
+        where: {
+          email,
+          pin: hash(pin),
+        },
+      });
+
+      if (getMerchant) {
+        getMerchant.update({
+          password: hash(newPassword),
+        });
+        responseJSON({
+          res,
+          status: 200,
+          data: getMerchant,
+        });
+      } else {
+        responseJSON({
+          res,
+          status: 400,
+          data: ["Incorrect email or pin"],
+        });
+      }
+    } catch (error) {
+      responseJSON({
+        res,
+        status: 400,
+        data: error.errors?.map((item) => item.message),
+      });
+    }
+  }
+
+  async verifyAccountByPin(req, res) {
+    const { email, pin } = req.body;
+    try {
+      const getMerchant = await merchanModel.findOne({
+        where: {
+          email,
+          pin: hash(pin),
+        },
+        attributes: {
+          exclude: ["password", "pin"],
+        },
+      });
+
+      if (getMerchant) {
+        responseJSON({
+          res,
+          status: 200,
+          data: getMerchant,
+        });
+      } else {
+        responseJSON({
+          res,
+          status: 400,
+          data: ["Incorrect email or pin"],
+        });
+      }
+    } catch (error) {
+      responseJSON({
+        res,
+        status: 400,
+        data: error.errors?.map((item) => item.message) || [
+          "An error occurred",
+        ],
+      });
+    }
+  }
 }
 
 module.exports = new controllerAuthentication();

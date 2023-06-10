@@ -3,6 +3,8 @@ const bookingModel = require("../../models/booking");
 const { responseJSON } = general;
 const { getPagination, getPagingData } = paging;
 const { Op } = require("sequelize");
+const facilityModel = require("../../models/facility");
+const userModel = require("../../models/user");
 
 class controllerBooking {
   async createBooking(req, res) {
@@ -38,6 +40,40 @@ class controllerBooking {
         res,
         status: 400,
         data: error.errors?.map((item) => item.message) || error?.message,
+      });
+    }
+  }
+  async bookingList(req, res) {
+    try {
+      const { merchantId } = req.params;
+      const getBooking = await bookingModel.findAll({
+        include: [
+          {
+            model: facilityModel,
+            as: "facility",
+            where: {
+              merchantId,
+            },
+          },
+          {
+            model: userModel,
+            as: "user",
+          },
+        ],
+      });
+
+      // Assuming responseJSON is a custom function to send the JSON response
+      responseJSON({
+        res,
+        status: 200,
+        data: getBooking,
+      });
+    } catch (error) {
+      console.error("Error retrieving booking list:", error);
+      responseJSON({
+        res,
+        status: 500,
+        message: "Internal Server Error",
       });
     }
   }

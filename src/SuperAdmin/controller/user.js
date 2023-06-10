@@ -70,6 +70,7 @@ class controllerUser {
         status: 200,
         data: {
           status,
+          info: "Updated Status Approved to block",
         },
       });
     } catch (error) {

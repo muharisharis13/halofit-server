@@ -7,7 +7,6 @@ class Wallet {
   async topUp(req, res) {
     const { userId } = req.params;
     const { nominal } = req.body;
-
     try {
       await userModel
         .findOne({
@@ -18,7 +17,7 @@ class Wallet {
         .then((result) => {
           if (result) {
             result.update({
-              balance: result.dataValues?.balance + parseInt(nominal),
+              balance: parseInt(result.dataValues?.balance) + parseInt(nominal),
             });
           }
         });
