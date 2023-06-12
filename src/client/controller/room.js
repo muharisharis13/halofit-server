@@ -92,7 +92,7 @@ class controllerRoom {
         });
 
         getMerchant.update({
-          balance: getTotalPayment,
+          balance: parseInt(getMerchant.dataValues?.balance) + getTotalPayment,
         });
 
         responseJSON({
@@ -433,7 +433,7 @@ class controllerRoom {
 
         const getSuperAdmin = await superAdminModel.findOne({
           where: {
-            username: "muharis",
+            username: "admin",
           },
         });
 

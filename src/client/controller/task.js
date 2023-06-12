@@ -147,12 +147,19 @@ class controllerTask {
         status,
         taskDetailId,
       });
-
-      responseJSON({
-        res,
-        status: 200,
-        data: result,
-      });
+      if (result) {
+        responseJSON({
+          res,
+          status: 200,
+          data: result,
+        });
+      } else {
+        responseJSON({
+          res,
+          status: 401,
+          data: "gagal jalankan task",
+        });
+      }
     } catch (error) {
       responseJSON({
         res,

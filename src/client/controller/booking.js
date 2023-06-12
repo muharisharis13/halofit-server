@@ -144,6 +144,7 @@ class controllerBooking {
       },
       show: true,
       userId,
+      type: "reserve",
     };
     try {
       const getListBooking = await bookingModel.findAndCountAll({
@@ -192,6 +193,7 @@ class controllerBooking {
       [`$${column_name}$`]: {
         [Op.like]: `%${query ?? ""}%`,
       },
+
       show: true,
     };
     try {
@@ -246,6 +248,7 @@ class controllerBooking {
       userId,
       time,
       payment = false,
+      type = "meetup",
     } = req.body;
     try {
       const getUser = await userModel.findOne({
@@ -259,6 +262,7 @@ class controllerBooking {
         price,
         booking_date,
         userId,
+        type,
         time: time
           ? JSON.stringify(
               JSON.parse(time).map((item, idx) => {

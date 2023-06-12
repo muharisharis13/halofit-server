@@ -36,6 +36,10 @@ const booking = database.define(
       type: DataTypes.BOOLEAN,
       defaultValue: true,
     },
+    type: {
+      type: DataTypes.ENUM("reserve", "meetup"),
+      allowNull: false,
+    },
   },
   {
     timestamps: true,
