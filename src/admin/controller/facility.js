@@ -99,6 +99,7 @@ class controllerMerchant {
         where: {
           facilityId,
           booking_date: selected_date,
+          show: 1,
         },
         include: [
           {

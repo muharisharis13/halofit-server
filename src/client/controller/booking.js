@@ -68,6 +68,12 @@ class controllerBooking {
         },
       });
 
+      await getUserBooking.update({
+        where: {
+          visibility: false,
+        },
+      });
+
       if (getUserBooking) {
         //hitung uang refund ke user 80%
         const refundPayment = parseInt(getUserBooking?.dataValues?.total) * 0.8;
@@ -248,7 +254,7 @@ class controllerBooking {
       userId,
       time,
       payment = false,
-      type = "meetup",
+      type = "reserve",
     } = req.body;
     try {
       const getUser = await userModel.findOne({
