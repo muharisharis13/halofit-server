@@ -125,6 +125,9 @@ class controllerRoom {
 
     try {
       let getRoom = await roomModel.findAll({
+        where: {
+          visibility: true,
+        },
         include: [
           {
             model: facilityModel,
@@ -139,6 +142,9 @@ class controllerRoom {
           {
             model: bookingModel,
             as: "booking",
+            where: {
+              userId: user_id,
+            },
           },
         ],
       });
@@ -240,10 +246,9 @@ class controllerRoom {
   async getListReqJoinRoom(req, res) {
     const { user_id } = req.params;
     try {
-      const getRoom = await roomModel.findOne({
+      const getRoom = await roomModel.findAndCountAll({
         where: {
           userId: user_id,
-          visibility: true,
         },
         include: [
           {
