@@ -5,22 +5,25 @@ const { multer } = require("../../../utils");
 
 router.post(
   "/",
-  multer.uploadBannnerTask.single("banner_img"),
+  multer.uploadBannerTask.single("banner_img"),
   controllerTask.createTask
 );
 router.get("/:merchantId", controllerTask.getListTask);
 router.get("/detail/:taskId", controllerTask.detailTask);
 router.put(
   "/detail/:merchantId",
-  multer.uploadBannnerTask.single("banner_img"),
+  multer.uploadBannerTask.single("banner_img"),
   controllerTask.updateTask
 );
 router.delete("/", controllerTask.deleteTask);
 router.get("/list-task-user/:merchantId", controllerTask.getListTaskUser);
-router.get("/list-task-user/detail/:userId", controllerTask.getDetailTaskUser);
+router.get(
+  "/list-task-user/detail/:userId/:taskId",
+  controllerTask.getDetailTaskUser2
+);
 router.put(
   "/list-task-user/detail/:userId",
-  controllerTask.updateDetailTaskUser
+  controllerTask.updateDetailTaskUser2
 );
 
 module.exports = router;

@@ -1,13 +1,110 @@
 const { Op } = require("sequelize");
-const { general, paging } = require("../../../utils");
+const { general, paging, url } = require("../../../utils");
 const { responseJSON } = general;
 const { getPagination, getPagingData } = paging;
 const taskMoodel = require("../../models/task");
 const taskDetailMoodel = require("../../models/task_detail");
 const userModel = require("../../models/user");
 const userTaskMode = require("../../models/user_task");
+const { fullURL } = url;
+const { pathBannerTask } = require("../../../utils/url");
 
 class controllerTask {
+  async updateDetailTaskUser2(req, res) {
+    const { userId } = req.params;
+    let { taskDetailId } = req.body;
+    try {
+      const getUserTask = await userTaskMode.findOne({
+        where: {
+          userId,
+        },
+      });
+
+      if (getUserTask) {
+        // di parse ke dari string ke JSON
+        // let taskDetailId = JSON.parse(getUserTask?.dataValues?.taskDetailId);
+        let taskDetailIdUser =
+          getUserTask?.dataValues?.taskDetailId?.split(",") || [];
+
+        //jika task detail dari user tidak ada maka buat baru untuk nambahkan task id nya
+        if (!taskDetailIdUser) {
+          taskDetailId = JSON.parse(taskDetailId);
+          getUserTask.update({
+            taskDetailId: taskDetailId.join(","),
+          });
+
+          responseJSON({
+            res,
+            status: 200,
+            data: "Berhasil",
+          });
+
+          return;
+        }
+
+        taskDetailId = JSON.parse(taskDetailId);
+        taskDetailIdUser = [...new Set(taskDetailId)];
+
+        //jika task di kerjakan semua
+        let getTaskDetail = await taskDetailMoodel.findAll({
+          where: {
+            taskId: getUserTask?.dataValues?.taskId,
+          },
+        });
+
+        let task = await taskMoodel.findOne({
+          where: {
+            id: getUserTask?.dataValues?.taskId,
+          },
+        });
+
+        let isComplete = getTaskDetail
+          .map((item) => item.dataValues)
+          .every((every) =>
+            taskDetailIdUser
+              .map((item) => parseInt(item))
+              .includes(parseInt(every.id))
+          );
+
+        console.log({ isComplete });
+
+        if (isComplete && getUserTask.dataValues?.status == "berjalan") {
+          console.log("masuk");
+          getUserTask.update({
+            taskDetailId: taskDetailIdUser.join(","),
+            status: isComplete ? "selesai" : "berjalan",
+          });
+          const findUser = await userModel.findOne({
+            where: {
+              id: userId,
+            },
+          });
+
+          if (!findUser) throw Error("User Tidak Ditemukan");
+
+          findUser.update({
+            point:
+              parseInt(findUser?.dataValues?.point) +
+              parseInt(task?.dataValues.poin),
+          });
+        }
+
+        responseJSON({
+          res,
+          status: 200,
+          data: taskDetailId,
+        });
+      } else {
+        throw Error("User Tidak ditemukan");
+      }
+    } catch (error) {
+      responseJSON({
+        res,
+        status: 500,
+        data: error.message,
+      });
+    }
+  }
   async updateDetailTaskUser(req, res) {
     const { userId } = req.params;
     const { taskDetailId } = req.body;
@@ -21,6 +118,7 @@ class controllerTask {
       let arrTaskDetailId = findUserTask?.dataValues?.taskDetailId?.split(",");
 
       if (arrTaskDetailId?.includes(JSON.stringify(taskDetailId))) {
+        console.log("masuk ada");
         arrTaskDetailId?.filter(
           (filter) => filter != JSON.stringify(taskDetailId)
         );
@@ -38,7 +136,8 @@ class controllerTask {
           data: findUserTask,
         });
       } else {
-        let newArrDetailId = [...arrTaskDetailId, taskDetailId];
+        console.log("masuk gak ada");
+        let newArrDetailId = [taskDetailId];
         const getDetailTask = await taskDetailMoodel.findAll({});
 
         const isComplete = getDetailTask
@@ -77,6 +176,50 @@ class controllerTask {
         res,
         status: 500,
         data: error.errors?.map((item) => item.message) || error.message,
+      });
+    }
+  }
+  async getDetailTaskUser2(req, res) {
+    const { userId, taskId } = req.params;
+    try {
+      let getTaskUser = await userTaskMode.findOne({
+        where: {
+          taskId,
+          userId,
+        },
+      });
+
+      const getUser = await userModel.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      const getDetailTask = await taskDetailMoodel.findAll({
+        where: {
+          taskId,
+        },
+      });
+
+      if (!getTaskUser) throw Error("Task User Tidak Ditemukan");
+
+      getTaskUser = {
+        ...getTaskUser.dataValues,
+        taskDetailId: getTaskUser?.dataValues?.taskDetailId?.split(",") || [],
+        list_task: getDetailTask,
+        userInfo: getUser.dataValues,
+      };
+
+      responseJSON({
+        res,
+        status: 200,
+        data: getTaskUser,
+      });
+    } catch (error) {
+      responseJSON({
+        res,
+        status: 500,
+        data: error.message,
       });
     }
   }
@@ -376,7 +519,7 @@ class controllerTask {
         task_name,
         expiredIn,
         poin,
-        banner_img: req.file.filename,
+        banner_img: `${fullURL(req)}${pathBannerTask}/${req.file.filename}`,
       });
 
       const id = result.id;

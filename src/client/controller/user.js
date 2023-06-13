@@ -1,6 +1,10 @@
 const userModel = require("../../models/user");
+const multer = require("multer");
 const { general } = require("../../../utils");
 const { responseJSON } = general;
+const { paging, url } = require("../../../utils");
+const { pathProfile } = require("../../../utils/url");
+const { fullURL } = url;
 
 class controllerUser {
   async getDetailUser(req, res) {
@@ -33,13 +37,13 @@ class controllerUser {
     const { username, gender, age, phone_number, bio } = req.body;
 
     try {
-      // if (!req.file) {
-      //   return responseJSON({
-      //     res,
-      //     status: 400,
-      //     data: "File must be uploaded!",
-      //   });
-      // }
+      if (!req.file) {
+        return responseJSON({
+          res,
+          status: 400,
+          data: "File must be uploaded!",
+        });
+      }
       let user = await userModel.findOne({
         where: {
           id: userId,
@@ -52,7 +56,7 @@ class controllerUser {
         age,
         phone_number,
         bio,
-        // profile_img: req.file.filename,
+        profile_img: `${fullURL(req)}${pathProfile}/${req.file.filename}`,
       });
 
       responseJSON({

@@ -83,7 +83,6 @@ class controllerMerchant {
       });
     }
   }
-
   async getTimePlay(req, res) {
     const { facilityId } = req.params;
     const { merchantId, selected_date } = req.body;
@@ -105,13 +104,12 @@ class controllerMerchant {
           {
             model: userModel,
             as: "user",
-            attributes: {
-              exclude: ["password", "createdAt", "updatedAt"],
-            },
+            attributes: ["username", "phone_number"],
           },
         ],
         order: [["createdAt", "DESC"]],
       });
+
       const timeBooking = getBooking
         ? getBooking.map((item) => JSON.parse(item.time))
         : [];
@@ -130,16 +128,21 @@ class controllerMerchant {
 
       const newData = {
         ...data,
-        list_time: data.list_time?.map((item) => ({
-          time: item,
-          available: !letNewTime.includes(item),
-          ...(letNewTime.includes(item)
-            ? {
-                username: getBooking[0]?.user?.username,
-                phone_number: getBooking[0]?.user?.phone_number,
-              }
-            : {}),
-        })),
+        list_time: data.list_time?.map((item) => {
+          const isBooked = letNewTime.includes(item);
+          const booking = getBooking.find((booking) =>
+            JSON.parse(booking.time).includes(item)
+          );
+          return {
+            time: item,
+            available: !isBooked,
+            ...(isBooked &&
+              booking && {
+                username: booking.user?.username,
+                phone_number: booking.user?.phone_number,
+              }),
+          };
+        }),
       };
 
       console.log({ letNewTime });

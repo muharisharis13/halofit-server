@@ -87,12 +87,14 @@ class controllerTask {
           },
         });
 
+        //mendapatkan list task detail id dari model user_task
         const taskDetailId = () => {
           return getOneUserTask.dataValues?.taskDetailId
             ?.split(",")
             ?.filter((filter) => filter != "");
         };
 
+        //filter berdasarkan taskID dari model task_detail
         const filterTaskDetail = () => {
           return taskDetail.filter(
             (filter) =>

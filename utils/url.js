@@ -5,6 +5,9 @@ class url {
   pathRouterPublic = (nameRouter) => `/api/v1/public/${nameRouter}`;
 
   pathBanner = "/view/image/banner";
+  pathProfile = "/view/image/profile";
+  pathBannerTask = "/view/image/task";
+
   fullURL = (req) => {
     const protocol = req.protocol;
     const host = req.hostname;
@@ -13,6 +16,17 @@ class url {
     const fullUrl = `${protocol}://${host}:${port}`;
     return fullUrl;
   };
+  // fullURL = (req) => {
+  //   const isSecure = req.headers["x-forwarded-proto"] === "https"; // Check if the request was made over HTTPS
+
+  //   const host = req.hostname;
+  //   const port = process.env.PORT;
+
+  //   const protocol = isSecure ? "https" : "http"; // Use 'https' if the request was made over HTTPS, otherwise use 'http'
+
+  //   const fullUrl = `${protocol}://${host}:${port}`;
+  //   return fullUrl;
+  // };
 }
 
 module.exports = new url();

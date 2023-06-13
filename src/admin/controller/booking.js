@@ -8,7 +8,8 @@ const userModel = require("../../models/user");
 
 class controllerBooking {
   async createBooking(req, res) {
-    const { facilityId, total, price, booking_date, userId, time } = req.body;
+    const { facilityId, total, price, booking_date, userId, time, type } =
+      req.body;
 
     try {
       const result = await bookingModel.create({
@@ -17,6 +18,7 @@ class controllerBooking {
         price,
         booking_date,
         userId,
+        type,
         time: time
           ? JSON.stringify(
               JSON.parse(time).map((item, idx) => {
@@ -62,7 +64,6 @@ class controllerBooking {
         ],
       });
 
-      // Assuming responseJSON is a custom function to send the JSON response
       responseJSON({
         res,
         status: 200,
