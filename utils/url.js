@@ -7,6 +7,7 @@ class url {
   pathBanner = "/view/image/banner";
   pathProfile = "/view/image/profile";
   pathBannerTask = "/view/image/task";
+  pathPromo = "/view/image/promo";
 
   fullURL = (req) => {
     const protocol = req.protocol;

@@ -2,6 +2,7 @@ const { DataTypes } = require("sequelize");
 const database = require("../../database");
 const merchantModel = require("./merchant");
 const categoryModel = require("./category");
+const promoModel = require("./promo");
 
 const facility = database.define(
   "facility",

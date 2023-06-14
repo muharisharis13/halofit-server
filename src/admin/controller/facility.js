@@ -79,7 +79,7 @@ class controllerMerchant {
       responseJSON({
         res,
         status: 500,
-        data: error.errors?.map((item) => item.message),
+        data: error.message,
       });
     }
   }
