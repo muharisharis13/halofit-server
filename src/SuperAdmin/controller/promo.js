@@ -1,7 +1,5 @@
 const PromoModel = require("../../models/promo");
 const { Op } = require("sequelize");
-const userModel = require("../../models/user");
-const userPromoModel = require("../../models/user_promo");
 const merchantModel = require("../../models/merchant");
 const { general, paging } = require("../../../utils");
 const { responseJSON } = general;

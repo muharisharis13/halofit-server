@@ -18,11 +18,11 @@ router.put(
 router.delete("/", controllerTask.deleteTask);
 router.get("/list-task-user/:merchantId", controllerTask.getListTaskUser);
 router.get(
-  "/list-task-user/detail/:userId/:taskId",
+  "/list-task-user/detail/:userId/:taskId/:taskUserId",
   controllerTask.getDetailTaskUser2
 );
 router.put(
-  "/list-task-user/detail/:userId",
+  "/list-task-user/detail/:taskUserId",
   controllerTask.updateDetailTaskUser2
 );
 

@@ -11,12 +11,12 @@ const { pathBannerTask } = require("../../../utils/url");
 
 class controllerTask {
   async updateDetailTaskUser2(req, res) {
-    const { userId } = req.params;
+    const { taskUserId } = req.params;
     let { taskDetailId } = req.body;
     try {
       const getUserTask = await userTaskMode.findOne({
         where: {
-          userId,
+          id: taskUserId,
         },
       });
 
@@ -25,12 +25,18 @@ class controllerTask {
         // let taskDetailId = JSON.parse(getUserTask?.dataValues?.taskDetailId);
         let taskDetailIdUser =
           getUserTask?.dataValues?.taskDetailId?.split(",") || [];
-
+        console.log("length", taskDetailIdUser.length);
         //jika task detail dari user tidak ada maka buat baru untuk nambahkan task id nya
-        if (!taskDetailIdUser) {
+        if (!taskDetailIdUser || taskDetailIdUser.length < 3) {
           taskDetailId = JSON.parse(taskDetailId);
+          taskDetailIdUser.push(taskDetailId);
+
           getUserTask.update({
-            taskDetailId: taskDetailId.join(","),
+            taskDetailId: taskDetailIdUser
+              .filter(
+                (value, index) => taskDetailIdUser.indexOf(value) === index
+              )
+              .join(","),
           });
 
           responseJSON({
@@ -41,6 +47,8 @@ class controllerTask {
 
           return;
         }
+
+        console.log("jalan");
 
         taskDetailId = JSON.parse(taskDetailId);
         taskDetailIdUser = [...new Set(taskDetailId)];
@@ -180,11 +188,12 @@ class controllerTask {
     }
   }
   async getDetailTaskUser2(req, res) {
-    const { userId, taskId } = req.params;
+    const { userId, taskUserId, taskId } = req.params;
     try {
       let getTaskUser = await userTaskMode.findOne({
         where: {
           taskId,
+          id: taskUserId,
           userId,
         },
       });
@@ -270,45 +279,32 @@ class controllerTask {
     const { merchantId } = req.params;
     const { limit, offset } = getPagination(page, size);
     try {
-      let getListDetailTask = await taskDetailMoodel.findAll({
-        where: {
-          merchantId,
-        },
-      });
-
-      let getListUser = await userModel.findAndCountAll({
-        attributes: {
-          exclude: ["password", "pin", "balance", "status"],
-        },
+      const getListTaskUser = await userTaskMode.findAndCountAll({
+        include: [
+          {
+            model: taskMoodel,
+            where: {
+              merchantId,
+            },
+            as: "task",
+          },
+          {
+            model: userModel,
+            as: "user",
+            attributes: {
+              exclude: ["password", "pin", "balance", "status", "bio"],
+            },
+          },
+        ],
         limit,
         offset,
         order: [["id", "DESC"]],
       });
 
-      const getUserTask = await userTaskMode.findAll();
-
-      getListDetailTask = getListDetailTask.map((item) => ({
-        ...item.dataValues,
-        list_user: item.dataValues?.list_user
-          ? JSON.parse(item.dataValues.list_user)
-          : [],
-      }));
-
-      getListUser = {
-        ...getListUser,
-        rows: getListUser.rows.map((item) => ({
-          ...item.dataValues,
-          task:
-            getUserTask.find(
-              (filter) => filter.dataValues.userId == item.dataValues.id
-            ) || null,
-        })),
-      };
-
       responseJSON({
         res,
         status: 200,
-        data: getPagingData(getListUser, page, limit),
+        data: getPagingData(getListTaskUser, page, limit),
       });
     } catch (error) {
       responseJSON({
@@ -318,6 +314,40 @@ class controllerTask {
       });
     }
   }
+  // let getListDetailTask = await taskDetailMoodel.findAll({
+  //   where: {
+  //     merchantId,
+  //   },
+  // });
+
+  // let getListUser = await userModel.findAndCountAll({
+  //   attributes: {
+  //     exclude: ["password", "pin", "balance", "status"],
+  //   },
+  //   limit,
+  //   offset,
+  //   order: [["id", "DESC"]],
+  // });
+
+  // const getUserTask = await userTaskMode.findAll();
+
+  // getListDetailTask = getListDetailTask.map((item) => ({
+  //   ...item.dataValues,
+  //   list_user: item.dataValues?.list_user
+  //     ? JSON.parse(item.dataValues.list_user)
+  //     : [],
+  // }));
+
+  // getListUser = {
+  //   ...getListUser,
+  //   rows: getListUser.rows.map((item) => ({
+  //     ...item.dataValues,
+  //     task:
+  //       getUserTask.find(
+  //         (filter) => filter.dataValues.userId == item.dataValues.id
+  //       ) || null,
+  //   })),
+  // };
   async deleteTask(req, res) {
     const { taskId, merchantId } = req.body;
     try {

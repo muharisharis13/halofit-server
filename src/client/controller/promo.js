@@ -92,6 +92,10 @@ class controllerPromo {
           {
             model: promoModel,
             as: "promo",
+            include: {
+              model: merchantModel,
+              as: "merchant",
+            },
           },
         ],
       });
