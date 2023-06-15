@@ -78,6 +78,50 @@ class controllerBooking {
       });
     }
   }
+  async getBookingAll(req, res) {
+    try {
+      const getBooking = await bookingModel.findAll({
+        include: [
+          {
+            model: userModel,
+            as: "user",
+            attributes: [
+              "username",
+              "email",
+              "gender",
+              "point",
+              "phone_number",
+            ],
+          },
+          {
+            model: facilityModel,
+            as: "facility",
+            attributes: ["facility_name", "merchantId"],
+            include: [
+              {
+                model: merchantModel,
+                as: "merchant",
+              },
+            ],
+          },
+        ],
+      });
+
+      responseJSON({
+        res,
+        status: 200,
+        data: {
+          booking: getBooking,
+        },
+      });
+    } catch (error) {
+      responseJSON({
+        res: res,
+        data: error.errors?.map((item) => item.message) || error,
+        status: 500,
+      });
+    }
+  }
 }
 
 module.exports = new controllerBooking();
