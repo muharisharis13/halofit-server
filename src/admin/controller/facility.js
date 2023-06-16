@@ -1,10 +1,13 @@
 const { Op } = require("sequelize");
-const { general } = require("../../../utils");
+const { general, url } = require("../../../utils");
 const { responseJSON } = require("../../../utils/general");
 const { getPagination, getPagingData } = require("../../../utils/paging");
 const facilityModel = require("../../models/facility");
 const bookingModel = require("../../models/booking");
 const userModel = require("../../models/user");
+const category = require("../../models/category");
+const { pathBanner } = require("../../../utils/url");
+const { fullURL } = url;
 
 const getListTIme = (time) => {
   if (time[0]) {
@@ -191,6 +194,83 @@ class controllerMerchant {
         res,
         status: 500,
         data: error.errors?.map((item) => item.message),
+      });
+    }
+  }
+  async deleteFacility(req, res) {
+    const { facilityId } = req.params;
+    try {
+      const result = facilityModel.destroy({
+        where: {
+          id: facilityId,
+        },
+      });
+      responseJSON({
+        res,
+        status: 200,
+        data: result,
+      });
+    } catch (error) {
+      responseJSON({
+        res,
+        status: 500,
+        data: error.message,
+      });
+    }
+  }
+  async EditFacility(req, res) {
+    const { facilityId } = req.params;
+    const { facility_name, price } = req.body;
+    try {
+      if (!req.file) {
+        responseJSON({
+          res,
+          status: 400,
+          data: "File Must be Upload !",
+        });
+      }
+      const result = await facilityModel.findOne({
+        where: {
+          id: facilityId,
+        },
+      });
+      result.update({
+        facility_name,
+        price,
+        banner_img: `${fullURL(req)}${pathBanner}/${req.file.filename}`,
+      });
+    } catch (error) {
+      responseJSON({
+        res,
+        status: 500,
+        data: error.message,
+      });
+    }
+  }
+  async getDetailFacility(req, res) {
+    const { facilityId } = req.params;
+    try {
+      const result = await facilityModel.findOne({
+        where: {
+          id: facilityId,
+        },
+        include: [
+          {
+            model: category,
+            as: "category",
+          },
+        ],
+      });
+      responseJSON({
+        res,
+        status: 200,
+        data: result,
+      });
+    } catch (error) {
+      responseJSON({
+        res,
+        status: 500,
+        data: error.message,
       });
     }
   }

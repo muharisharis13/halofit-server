@@ -416,7 +416,7 @@ class controllerTask {
           task_name,
           expiredIn,
           poin,
-          banner_img: req.file?.filename || null,
+          banner_img: `${fullURL(req)}${pathBannerTask}/${req.file.filename}`,
         });
       }
 
