@@ -1,5 +1,9 @@
 const { Sequelize } = require("sequelize");
 
+// const DB_NAME = "epiz_34296880_helofit";
+// const DB_USER = "epiz_34296880";
+// const DB_PASS = "kN3hr0oxiExMvNu";
+// const DB_HOST = "sql302.epizy.com";
 const DB_NAME = process.env.DB_NAME;
 const DB_USER = process.env.DB_USER;
 const DB_PASS = process.env.DB_PASS;

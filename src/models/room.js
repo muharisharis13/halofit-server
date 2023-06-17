@@ -60,6 +60,10 @@ const room = database.define(
       type: DataTypes.BOOLEAN,
       defaultValue: true,
     },
+    status_room: {
+      type: DataTypes.ENUM("stand_by", "start", "finish"),
+      defaultValue: "stand_by",
+    },
   },
   {
     timestamps: true,
