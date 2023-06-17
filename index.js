@@ -9,7 +9,6 @@ const Routing = require("./src/client/routing");
 const RoutingAdmin = require("./src/admin/routing");
 const RoutingSuperAdmin = require("./src/SuperAdmin/routing");
 const RoutingPublic = require("./src/public/routing");
-
 // Midleware ====
 
 Middleware({ app, bodyParser, cors, express });

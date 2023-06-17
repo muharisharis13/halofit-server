@@ -41,6 +41,20 @@ class controllerNotification {
               getRoomDetail.update({
                 status_approved: "reject",
               });
+
+              await userModel
+                .findOne({
+                  where: {
+                    id: userIdRequestJoin,
+                  },
+                })
+                .then((result) => {
+                  result.update({
+                    balance:
+                      parseInt(result?.dataValues?.balance) +
+                      getRoomDetail?.dataValues?.payment,
+                  });
+                });
               responseJSON({
                 res,
                 status: 200,
@@ -175,8 +189,8 @@ class controllerNotification {
           .map((item) => ({
             ...item.dataValues,
             room: {
-              ...item.dataValues.room.dataValues,
-              isHost: item.dataValues.room.userId == userId,
+              ...item.dataValues?.room?.dataValues,
+              isHost: item.dataValues?.room?.userId == userId,
             },
             list_user: JSON.parse(item.dataValues?.list_user)?.map((item) => ({
               ...item,
@@ -202,7 +216,7 @@ class controllerNotification {
       responseJSON({
         res,
         status: 500,
-        data: error.errors?.map((item) => item.message) || error.message,
+        data: error.message,
       });
     }
   }

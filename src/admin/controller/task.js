@@ -1,13 +1,118 @@
 const { Op } = require("sequelize");
-const { general, paging } = require("../../../utils");
+const { general, paging, url } = require("../../../utils");
 const { responseJSON } = general;
 const { getPagination, getPagingData } = paging;
 const taskMoodel = require("../../models/task");
 const taskDetailMoodel = require("../../models/task_detail");
 const userModel = require("../../models/user");
 const userTaskMode = require("../../models/user_task");
+const { fullURL } = url;
+const { pathBannerTask } = require("../../../utils/url");
 
 class controllerTask {
+  async updateDetailTaskUser2(req, res) {
+    const { taskUserId } = req.params;
+    let { taskDetailId } = req.body;
+    try {
+      const getUserTask = await userTaskMode.findOne({
+        where: {
+          id: taskUserId,
+        },
+      });
+
+      if (getUserTask) {
+        // di parse ke dari string ke JSON
+        // let taskDetailId = JSON.parse(getUserTask?.dataValues?.taskDetailId);
+        let taskDetailIdUser =
+          getUserTask?.dataValues?.taskDetailId?.split(",") || [];
+        console.log("length", taskDetailIdUser.length);
+        //jika task detail dari user tidak ada maka buat baru untuk nambahkan task id nya
+        if (!taskDetailIdUser || taskDetailIdUser.length < 3) {
+          taskDetailId = JSON.parse(taskDetailId);
+          taskDetailIdUser.push(taskDetailId);
+
+          getUserTask.update({
+            taskDetailId: taskDetailIdUser
+              .filter(
+                (value, index) => taskDetailIdUser.indexOf(value) === index
+              )
+              .join(","),
+          });
+
+          responseJSON({
+            res,
+            status: 200,
+            data: "Berhasil",
+          });
+
+          return;
+        }
+
+        console.log("jalan");
+
+        taskDetailId = JSON.parse(taskDetailId);
+        taskDetailIdUser = [...new Set(taskDetailId)];
+
+        //jika task di kerjakan semua
+        let getTaskDetail = await taskDetailMoodel.findAll({
+          where: {
+            taskId: getUserTask?.dataValues?.taskId,
+          },
+        });
+
+        let task = await taskMoodel.findOne({
+          where: {
+            id: getUserTask?.dataValues?.taskId,
+          },
+        });
+
+        let isComplete = getTaskDetail
+          .map((item) => item.dataValues)
+          .every((every) =>
+            taskDetailIdUser
+              .map((item) => parseInt(item))
+              .includes(parseInt(every.id))
+          );
+
+        console.log({ isComplete });
+
+        if (isComplete && getUserTask.dataValues?.status == "berjalan") {
+          console.log("masuk");
+          getUserTask.update({
+            taskDetailId: taskDetailIdUser.join(","),
+            status: isComplete ? "selesai" : "berjalan",
+          });
+          const findUser = await userModel.findOne({
+            where: {
+              id: userId,
+            },
+          });
+
+          if (!findUser) throw Error("User Tidak Ditemukan");
+
+          findUser.update({
+            point:
+              parseInt(findUser?.dataValues?.point) +
+              parseInt(task?.dataValues.poin),
+          });
+        }
+
+        responseJSON({
+          res,
+          status: 200,
+          data: taskDetailId,
+        });
+      } else {
+        throw Error("User Tidak ditemukan");
+      }
+    } catch (error) {
+      responseJSON({
+        res,
+        status: 500,
+        data: error.message,
+      });
+    }
+  }
   async updateDetailTaskUser(req, res) {
     const { userId } = req.params;
     const { taskDetailId } = req.body;
@@ -21,6 +126,7 @@ class controllerTask {
       let arrTaskDetailId = findUserTask?.dataValues?.taskDetailId?.split(",");
 
       if (arrTaskDetailId?.includes(JSON.stringify(taskDetailId))) {
+        console.log("masuk ada");
         arrTaskDetailId?.filter(
           (filter) => filter != JSON.stringify(taskDetailId)
         );
@@ -38,7 +144,8 @@ class controllerTask {
           data: findUserTask,
         });
       } else {
-        let newArrDetailId = [...arrTaskDetailId, taskDetailId];
+        console.log("masuk gak ada");
+        let newArrDetailId = [taskDetailId];
         const getDetailTask = await taskDetailMoodel.findAll({});
 
         const isComplete = getDetailTask
@@ -77,6 +184,51 @@ class controllerTask {
         res,
         status: 500,
         data: error.errors?.map((item) => item.message) || error.message,
+      });
+    }
+  }
+  async getDetailTaskUser2(req, res) {
+    const { userId, taskUserId, taskId } = req.params;
+    try {
+      let getTaskUser = await userTaskMode.findOne({
+        where: {
+          taskId,
+          id: taskUserId,
+          userId,
+        },
+      });
+
+      const getUser = await userModel.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      const getDetailTask = await taskDetailMoodel.findAll({
+        where: {
+          taskId,
+        },
+      });
+
+      if (!getTaskUser) throw Error("Task User Tidak Ditemukan");
+
+      getTaskUser = {
+        ...getTaskUser.dataValues,
+        taskDetailId: getTaskUser?.dataValues?.taskDetailId?.split(",") || [],
+        list_task: getDetailTask,
+        userInfo: getUser.dataValues,
+      };
+
+      responseJSON({
+        res,
+        status: 200,
+        data: getTaskUser,
+      });
+    } catch (error) {
+      responseJSON({
+        res,
+        status: 500,
+        data: error.message,
       });
     }
   }
@@ -127,45 +279,32 @@ class controllerTask {
     const { merchantId } = req.params;
     const { limit, offset } = getPagination(page, size);
     try {
-      let getListDetailTask = await taskDetailMoodel.findAll({
-        where: {
-          merchantId,
-        },
-      });
-
-      let getListUser = await userModel.findAndCountAll({
-        attributes: {
-          exclude: ["password", "pin", "balance"],
-        },
+      const getListTaskUser = await userTaskMode.findAndCountAll({
+        include: [
+          {
+            model: taskMoodel,
+            where: {
+              merchantId,
+            },
+            as: "task",
+          },
+          {
+            model: userModel,
+            as: "user",
+            attributes: {
+              exclude: ["password", "pin", "balance", "status", "bio"],
+            },
+          },
+        ],
         limit,
         offset,
         order: [["id", "DESC"]],
       });
 
-      const getUserTask = await userTaskMode.findAll();
-
-      getListDetailTask = getListDetailTask.map((item) => ({
-        ...item.dataValues,
-        list_user: item.dataValues?.list_user
-          ? JSON.parse(item.dataValues.list_user)
-          : [],
-      }));
-
-      getListUser = {
-        ...getListUser,
-        rows: getListUser.rows.map((item) => ({
-          ...item.dataValues,
-          task:
-            getUserTask.find(
-              (filter) => filter.dataValues.userId == item.dataValues.id
-            ) || null,
-        })),
-      };
-
       responseJSON({
         res,
         status: 200,
-        data: getPagingData(getListUser, page, limit),
+        data: getPagingData(getListTaskUser, page, limit),
       });
     } catch (error) {
       responseJSON({
@@ -175,6 +314,40 @@ class controllerTask {
       });
     }
   }
+  // let getListDetailTask = await taskDetailMoodel.findAll({
+  //   where: {
+  //     merchantId,
+  //   },
+  // });
+
+  // let getListUser = await userModel.findAndCountAll({
+  //   attributes: {
+  //     exclude: ["password", "pin", "balance", "status"],
+  //   },
+  //   limit,
+  //   offset,
+  //   order: [["id", "DESC"]],
+  // });
+
+  // const getUserTask = await userTaskMode.findAll();
+
+  // getListDetailTask = getListDetailTask.map((item) => ({
+  //   ...item.dataValues,
+  //   list_user: item.dataValues?.list_user
+  //     ? JSON.parse(item.dataValues.list_user)
+  //     : [],
+  // }));
+
+  // getListUser = {
+  //   ...getListUser,
+  //   rows: getListUser.rows.map((item) => ({
+  //     ...item.dataValues,
+  //     task:
+  //       getUserTask.find(
+  //         (filter) => filter.dataValues.userId == item.dataValues.id
+  //       ) || null,
+  //   })),
+  // };
   async deleteTask(req, res) {
     const { taskId, merchantId } = req.body;
     try {
@@ -243,7 +416,7 @@ class controllerTask {
           task_name,
           expiredIn,
           poin,
-          banner_img: req.file?.filename || null,
+          banner_img: `${fullURL(req)}${pathBannerTask}/${req.file.filename}`,
         });
       }
 
@@ -376,7 +549,7 @@ class controllerTask {
         task_name,
         expiredIn,
         poin,
-        banner_img: req.file.filename,
+        banner_img: `${fullURL(req)}${pathBannerTask}/${req.file.filename}`,
       });
 
       const id = result.id;

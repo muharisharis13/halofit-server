@@ -6,6 +6,8 @@ const taskRouter = require("./task");
 const bookingRouter = require("./booking");
 const roomRouter = require("./Meetup");
 const messageRouter = require("./messages");
+const sendEmailRouter = require("./email");
+const promoRouter = require("./promo");
 
 const { pathRouterSuperAdmin } = url;
 
@@ -17,6 +19,8 @@ const Routing = (app) => {
   app.use(pathRouterSuperAdmin("booking"), bookingRouter);
   app.use(pathRouterSuperAdmin("room"), roomRouter);
   app.use(pathRouterSuperAdmin("message"), messageRouter);
+  app.use(pathRouterSuperAdmin("email"), sendEmailRouter);
+  app.use(pathRouterSuperAdmin("promo"), promoRouter);
 };
 
 module.exports = Routing;

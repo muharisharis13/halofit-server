@@ -11,6 +11,7 @@ router.get("/:room_id", isAuthenticationToken, controllerRoom.getDetailRoom);
 router.get("/", isAuthenticationToken, controllerRoom.getListRoom);
 router.post("/", isAuthenticationToken, controllerRoom.createRoom);
 router.post("/join", isAuthenticationToken, controllerRoom.joinRoom);
+router.post("/cancel", isAuthenticationToken, controllerRoom.cancelJoin)
 router.get(
   "/request/:user_id",
   isAuthenticationToken,
@@ -22,5 +23,6 @@ router.put(
   controllerRoom.approvedRequestUser
 );
 router.get("/own/:user_id", isAuthenticationToken, controllerRoom.getOwnRoom);
+router.post("/start", isAuthenticationToken, controllerRoom.StartRoom)
 
 module.exports = router;

@@ -8,6 +8,7 @@ const { Op } = require("sequelize");
 const featureModel = require("../../models/feature");
 const facilityModel = require("../../models/facility");
 const categoryModel = require("../../models/category");
+const { fullURL, pathMerchant } = require("../../../utils/url");
 
 class controllerMerchant {
   async updateMerchantTime(req, res) {
@@ -55,6 +56,7 @@ class controllerMerchant {
       merchant_feature = [],
       merchant_time,
     } = req.body;
+    console.log("req body", JSON.parse(req.body?.merchant_feature));
     try {
       await merchantModel
         .findOne({
@@ -62,27 +64,130 @@ class controllerMerchant {
             id: merchantId,
           },
         })
-        .then((result) => {
+        .then(async (result) => {
           if (result) {
+            if (req.file?.filename) {
+              result.update({
+                img_merchant: req.file?.filename,
+              });
+            }
             result.update({
               merchant_name,
               address,
               desc,
             });
+
+            if (!merchant_feature)
+              throw Error(
+                "Something Error with merchant_feature must be parse to stringify or null"
+              );
+
+            //parse dari string ke json
+            const parseMerchantFeature = JSON.parse(merchant_feature);
+
+            const getAllmerchantFeature = await merchantFeatureModel.findAll({
+              where: {
+                merchantId,
+              },
+            });
+
+            //proses hapus atau menambahkan feature
+            function filterDataWithoutFriend() {
+              const friendIds = parseMerchantFeature.map((item) => item.id);
+
+              const filteredData = getAllmerchantFeature.filter(
+                (item) => !friendIds.includes(item.dataValues?.featureId)
+              );
+
+              return filteredData;
+            }
+            const filteredData = filterDataWithoutFriend()?.map(
+              (item) => item.dataValues
+            );
+
+            console.log({
+              filteredData: filteredData,
+            });
+
+            if (filteredData.length > 0) {
+              //menghapus feature jika ada
+              filteredData.map(async (item) => {
+                await merchantFeatureModel
+                  .findOne({
+                    where: {
+                      merchantId: item?.merchantId,
+                      featureId: item?.featureId,
+                    },
+                  })
+                  .then((result) => {
+                    result.destroy();
+                  });
+              });
+            } else {
+              parseMerchantFeature.map(async (item) => {
+                await merchantFeatureModel
+                  .findOne({
+                    where: {
+                      featureId: item?.id,
+                      merchantId: merchantId,
+                    },
+                  })
+                  .then(async (result) => {
+                    if (!result) {
+                      console.log("gak ada", item);
+                      await merchantFeatureModel.create({
+                        merchantId,
+                        featureId: item?.id,
+                      });
+                    }
+                  });
+              });
+            }
+            //==========================//==========================
+
+            if (!merchant_time) throw Error("merchant_time must be include");
+            let parseMerchantTime = JSON.parse(merchant_time);
+
+            for (const item in parseMerchantTime) {
+              if (
+                item == "id" ||
+                item == "merchantId" ||
+                item == "createdAt" ||
+                item == "updatedAt"
+              ) {
+                delete parseMerchantTime[item];
+              }
+
+              parseMerchantTime = parseMerchantTime;
+            }
+
+            console.log({ parseMerchantTime });
+
+            const getAllMerchantTime = await merchantTimeModel.findOne({
+              where: {
+                merchantId,
+              },
+              // raw: true,
+            });
+
+            if (!getAllMerchantTime) throw Error("Merchant Time Not Found");
+
+            for (const item in parseMerchantTime) {
+              await getAllMerchantTime.update({
+                [item]: JSON.stringify(parseMerchantTime[item]),
+              });
+              // console.log({ datanya: parseMerchantTime[item] });
+            }
+
+            responseJSON({
+              res,
+              status: 200,
+              data: "Successfully edit merchant",
+            });
+          } else {
+            throw Error("Merchant Not Found");
           }
         });
-
-      responseJSON({
-        res,
-        status: 200,
-        data: {
-          merchant_name,
-          address,
-          desc,
-          merchant_feature,
-          merchant_time,
-        },
-      });
     } catch (error) {
       responseJSON({
         res,
@@ -291,7 +396,12 @@ class controllerMerchant {
           res,
           status: 200,
           data: {
-            merchant_info: result,
+            merchant_info: {
+              ...result.dataValues,
+              img_merchant: `${fullURL(req)}${pathMerchant}/${
+                result.dataValues?.img_merchant
+              }`,
+            },
             feature_merchant: getMerchantFeature,
             merchant_time: getMerchantTime
               ? {

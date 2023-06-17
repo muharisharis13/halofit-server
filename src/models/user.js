@@ -43,6 +43,23 @@ const user = database.define(
       allowNull: false,
       defaultValue: 0,
     },
+    status: {
+      type: DataTypes.ENUM("approved", "blocked"),
+      allowNull: true,
+    },
+    bio: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    age: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: 0,
+    },
+    profile_img: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     timestamps: true,

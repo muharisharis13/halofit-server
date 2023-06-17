@@ -3,6 +3,9 @@ const { general, paging } = require("../../../utils");
 const { responseJSON } = general;
 const { getPagination, getPagingData } = paging;
 const { Op } = require("sequelize");
+const userModel = require("../../models/user");
+const merchantModel = require("../../models/merchant");
+const facilityModel = require("../../models/facility");
 
 class controllerBooking {
   async deleteBooking(req, res) {
@@ -54,6 +57,136 @@ class controllerBooking {
       });
     }
   }
+  async cancelBooking(req, res) {
+    const { userId, bookingId } = req.body;
+    try {
+      const getUserBooking = await bookingModel.findOne({
+        where: {
+          userId,
+          show: true,
+          id: bookingId,
+        },
+      });
+
+      await getUserBooking.update({
+        where: {
+          visibility: false,
+        },
+      });
+
+      if (getUserBooking) {
+        //hitung uang refund ke user 80%
+        const refundPayment = parseInt(getUserBooking?.dataValues?.total) * 0.8;
+
+        //hitung uang refung ke mitra 20%
+        const refundMitra = parseInt(getUserBooking?.dataValues?.total) * 0.2;
+
+        const getFacility = await facilityModel.findOne({
+          where: {
+            id: getUserBooking?.dataValues?.facilityId,
+          },
+        });
+
+        const getMerchant = await merchantModel.findOne({
+          where: {
+            id: getFacility?.dataValues?.merchantId,
+          },
+        });
+
+        const getUser = await userModel.findOne({
+          where: {
+            id: userId,
+          },
+        });
+
+        try {
+          if (getMerchant) {
+            getMerchant.update({
+              balance:
+                parseInt(getMerchant?.dataValues?.balance) +
+                parseInt(refundMitra),
+            });
+          }
+
+          if (getUser) {
+            getUser.update({
+              balance: parseInt(getUser?.balance) + parseInt(refundPayment),
+            });
+          }
+
+          getUserBooking.update({
+            show: false,
+          });
+
+          responseJSON({
+            res,
+            status: 200,
+            data: "Berhasil Cancel",
+          });
+        } catch (error) {
+          return error;
+        }
+      }
+    } catch (error) {
+      responseJSON({
+        res,
+        status: 400,
+        data: error?.message,
+      });
+    }
+  }
+  async getOwnBooking(req, res) {
+    const {
+      page = 1,
+      size = 10,
+      column_name = "booking_date",
+      query = "",
+    } = req.query;
+    const { userId } = req.params;
+    const { limit, offset } = getPagination(page, size);
+    const condition = {
+      [`$${column_name}$`]: {
+        [Op.like]: `%${query ?? ""}%`,
+      },
+      show: true,
+      userId,
+      type: "reserve",
+    };
+    try {
+      const getListBooking = await bookingModel.findAndCountAll({
+        where: condition,
+        limit,
+        offset,
+        order: [["id", "DESC"]],
+        include: [
+          {
+            model: facilityModel,
+            as: "facility",
+            attributes: ["facility_name"],
+            include: [
+              {
+                model: merchantModel,
+                as: "merchant",
+                attributes: ["address"],
+              },
+            ],
+          },
+        ],
+      });
+
+      responseJSON({
+        res,
+        status: 200,
+        data: getPagingData(getListBooking, page, limit),
+      });
+    } catch (error) {
+      responseJSON({
+        res,
+        status: 400,
+        data: error?.message,
+      });
+    }
+  }
   async getListBooking(req, res) {
     const {
       page = 1,
@@ -66,6 +199,8 @@ class controllerBooking {
       [`$${column_name}$`]: {
         [Op.like]: `%${query ?? ""}%`,
       },
+
+      show: true,
     };
     try {
       const getListBooking = await bookingModel.findAndCountAll({
@@ -111,14 +246,29 @@ class controllerBooking {
     }
   }
   async createBooking(req, res) {
-    const { facilityId, total, price, booking_date, userId, time } = req.body;
+    const {
+      facilityId,
+      total,
+      price,
+      booking_date,
+      userId,
+      time,
+      payment = false,
+      type = "reserve",
+    } = req.body;
     try {
+      const getUser = await userModel.findOne({
+        where: {
+          id: userId,
+        },
+      });
       const result = await bookingModel.create({
         facilityId,
         total,
         price,
         booking_date,
         userId,
+        type,
         time: time
           ? JSON.stringify(
               JSON.parse(time).map((item, idx) => {
@@ -132,6 +282,13 @@ class controllerBooking {
             )
           : [],
       });
+
+      if (payment) {
+        //mengurangi balance di user dari hasil reserve
+        getUser.update({
+          balance: parseInt(getUser?.dataValues?.balance) - parseInt(total),
+        });
+      }
 
       responseJSON({
         res,

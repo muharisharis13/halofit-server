@@ -4,6 +4,7 @@ const userModel = require("../../models/user");
 const bookingModel = require("../../models/booking");
 const merchantModel = require("../../models/merchant");
 const roomDetailModel = require("../../models/room_detail");
+const superAdminModel = require("../../models/SuperAdmin");
 const notifJoinRoomModel = require("../../models/notifications_join_room");
 const { general, paging } = require("../../../utils");
 const { Op } = require("sequelize");
@@ -18,12 +19,115 @@ const getOneDayTimeStamps = (date) => {
   return newDate;
 };
 
+const paymentUser = async (userId, payment) => {
+  try {
+    const result = await userModel.findOne({
+      where: {
+        id: userId,
+      },
+    });
+
+    return result.update({
+      balance: parseInt(result?.dataValues?.balance) - parseInt(payment),
+    });
+  } catch (error) {
+    return error.message;
+  }
+};
+
 class controllerRoom {
+  async StartRoom(req, res) {
+    const { roomId, userId } = req.body;
+    try {
+      const result = await roomModel.findOne({
+        where: {
+          id: roomId,
+          userId,
+        },
+      });
+
+      const getDetailRoom = await roomDetailModel.findAll({
+        where: {
+          roomId: roomId,
+        },
+      });
+      const getBooking = await bookingModel.findOne({
+        where: {
+          id: result?.dataValues?.bookingId,
+        },
+      });
+
+      const getUser = await userModel.findOne({
+        where: {
+          id: result?.dataValues?.userId,
+        },
+      });
+      const getFacility = await facilityModel.findOne({
+        where: {
+          id: result?.dataValues?.facilityId,
+        },
+      });
+      const getMerchant = await merchantModel.findOne({
+        where: {
+          id: getFacility?.dataValues?.merchantId,
+        },
+      });
+
+      const getAllPayment = getDetailRoom
+        .map((item) => item.dataValues.payment)
+        .reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+      const getTotalPayment = getBooking?.dataValues?.total;
+
+      const finalPayment = getAllPayment - getTotalPayment;
+
+      if (finalPayment > 0) {
+        getUser.update({
+          //pengembalian dana dp ke user
+          balance:
+            parseInt(getUser.dataValues?.balance) + parseInt(finalPayment),
+        });
+        result.update({
+          // merubah status dari waiting ke playing
+          status_room: "playing",
+        });
+
+        getMerchant.update({
+          balance: parseInt(getMerchant.dataValues?.balance) + getTotalPayment,
+        });
+
+        responseJSON({
+          res,
+          status: 200,
+          data: "success",
+        });
+      } else {
+        responseJSON({
+          res,
+          status: 200,
+          data: "Pembayaran Masih Berkurang",
+        });
+      }
+      // responseJSON({
+      //   res,
+      //   status: 200,
+      //   data: { getDetailRoom, getAllPayment, result, getBooking, getTotalPayment, finalPayment, getUser, getFacility, getMerchant },
+      // });
+    } catch (error) {
+      responseJSON({
+        res,
+        status: 400,
+        data: error.message,
+      });
+    }
+  }
   async getOwnRoom(req, res) {
     const { user_id } = req.params;
 
     try {
       let getRoom = await roomModel.findAll({
+        where: {
+          visibility: true,
+        },
         include: [
           {
             model: facilityModel,
@@ -38,6 +142,9 @@ class controllerRoom {
           {
             model: bookingModel,
             as: "booking",
+            where: {
+              userId: user_id,
+            },
           },
         ],
       });
@@ -139,7 +246,7 @@ class controllerRoom {
   async getListReqJoinRoom(req, res) {
     const { user_id } = req.params;
     try {
-      const getRoom = await roomModel.findOne({
+      const getRoom = await roomModel.findAndCountAll({
         where: {
           userId: user_id,
         },
@@ -194,8 +301,189 @@ class controllerRoom {
       });
     }
   }
+  async cancelJoin(req, res) {
+    const { roomId, userId, isHost = false, bookingId } = req.body;
+    console.log({ isHost });
+    if (isHost === "true") {
+      try {
+        const getRoomDetail = await roomDetail.findAll({
+          where: {
+            roomId,
+          },
+        });
+
+        const getUserHost = await userModel.findOne({
+          where: {
+            id: userId,
+          },
+        });
+
+        const getBooking = await bookingModel.findOne({
+          where: {
+            id: bookingId,
+          },
+        });
+
+        const getRoom = await roomModel.findOne({
+          where: {
+            id: roomId,
+          },
+          include: [
+            {
+              model: facilityModel,
+              as: "facility",
+              attributes: ["id", "merchantId"],
+            },
+          ],
+        });
+
+        //kembalikan uang member ke masing masing dompet
+
+        const getMember = getRoomDetail.filter(
+          (filter) => filter.dataValues.userId != userId
+        ); //filter hostnya
+        console.log(getMember);
+        getMember.map(async (item) => {
+          await userModel
+            .findOne({
+              where: {
+                id: item?.dataValues?.userId,
+              },
+            })
+            .then((resultUser) => {
+              resultUser.update({
+                balance:
+                  parseInt(resultUser?.dataValues?.balance) +
+                  parseInt(item?.dataValues?.payment),
+              });
+            });
+        });
+
+        //pindahkan uang host room ke mitra/merchant
+        const getTotal = getBooking.dataValues?.total;
+
+        const dp = parseInt(getTotal) * 0.2;
+
+        const getHost = getRoomDetail.find(
+          (filter) => filter.dataValues.userId == userId
+        );
+
+        if (getHost?.dataValues?.payment) {
+          const getMerchant = await merchantModel.findOne({
+            where: {
+              id: getRoom?.dataValues?.facility?.merchantId,
+            },
+          });
+
+          const returnPayment =
+            parseInt(getHost?.dataValues?.payment) - parseInt(dp);
+
+          if (getMerchant) {
+            getMerchant.update({
+              balance:
+                parseInt(getMerchant?.dataValues?.balance) + parseInt(dp),
+            });
+          }
+
+          if (getUserHost) {
+            getUserHost.update({
+              balance:
+                parseInt(returnPayment) +
+                parseInt(getUserHost?.dataValues?.balance),
+            });
+          }
+        }
+
+        // hapus room
+        await getRoom.update({
+          visibility: false,
+        });
+        await getBooking.update({
+          show: false,
+        });
+
+        //hapus room detail
+        await getRoomDetail.map(async (item) => {
+          await roomDetailModel
+            .findOne({
+              where: {
+                userId: item?.dataValues?.userId,
+              },
+            })
+            .then((result) => {
+              result.destroy();
+            });
+        });
+
+        responseJSON({
+          res,
+          status: 200,
+          data: getMember,
+        });
+      } catch (error) {
+        responseJSON({
+          res,
+          status: 400,
+          data: error.message,
+        });
+      }
+    } else {
+      try {
+        const result = await roomDetail.findOne({
+          where: {
+            roomId,
+            userId,
+          },
+        });
+
+        const getSuperAdmin = await superAdminModel.findOne({
+          where: {
+            username: "admin",
+          },
+        });
+
+        if (
+          result?.dataValues?.payment != 0 ||
+          result?.dataValues?.payment != "" ||
+          result?.dataValues?.payment != undefined ||
+          result?.dataValues?.payment != null
+        ) {
+          getSuperAdmin.update({
+            balance:
+              parseInt(getSuperAdmin?.dataValues?.balance) +
+              parseInt(result?.dataValues.payment),
+          });
+
+          await roomDetail.destroy({
+            where: {
+              userId,
+            },
+          });
+
+          responseJSON({
+            res,
+            status: 200,
+            data: result,
+          });
+        } else {
+          responseJSON({
+            res,
+            status: 400,
+            data: "payment is no have !",
+          });
+        }
+      } catch (error) {
+        responseJSON({
+          res,
+          status: 400,
+          data: error.message,
+        });
+      }
+    }
+  }
+
   async joinRoom(req, res) {
-    const { roomId, userId, qty } = req.body;
+    const { roomId, userId, qty, payment } = req.body;
     try {
       const findUserInRoomDetail = await roomDetailModel.findOne({
         where: {
@@ -205,16 +493,49 @@ class controllerRoom {
       });
 
       if (findUserInRoomDetail) {
-        responseJSON({
-          res,
-          status: 400,
-          data: "User Already Exist This Room !",
+        const getUserInRoomDetail = await roomDetailModel.findOne({
+          where: {
+            roomId,
+            userId,
+          },
         });
+
+        if (getUserInRoomDetail) {
+          getUserInRoomDetail.update({
+            status_approved: "unapproved",
+          });
+          paymentUser(userId, payment);
+          const findNotifByRoom = await notifJoinRoomModel.findOne({
+            where: {
+              roomId,
+              // roomDetailId: result?.id,
+            },
+          });
+
+          findNotifByRoom.update({
+            list_user: JSON.stringify([
+              ...JSON.parse(findNotifByRoom?.dataValues?.list_user).filter(
+                (filter) => filter?.userId != userId
+              ),
+              {
+                userId: userId,
+                status: "request",
+              },
+            ]),
+          });
+
+          responseJSON({
+            res,
+            status: 200,
+            data: "Ready Join Again !",
+          });
+        }
       } else {
         const result = await roomDetailModel.create({
           roomId,
           userId,
           qty: qty,
+          payment,
         });
         const findNotifByRoom = await notifJoinRoomModel.findOne({
           where: {
@@ -222,9 +543,7 @@ class controllerRoom {
             // roomDetailId: result?.id,
           },
         });
-        console.log({
-          findNotifByRoom: findNotifByRoom?.dataValues?.list_user?.split(","),
-        });
+        paymentUser(userId, payment);
         if (!findNotifByRoom) {
           await notifJoinRoomModel.create({
             roomId,
@@ -235,7 +554,9 @@ class controllerRoom {
         } else {
           findNotifByRoom.update({
             list_user: JSON.stringify([
-              ...JSON.parse(findNotifByRoom?.dataValues?.list_user),
+              ...JSON.parse(findNotifByRoom?.dataValues?.list_user).filter(
+                (filter) => filter?.userId != userId
+              ),
               {
                 userId: userId,
                 status: "request",
@@ -434,6 +755,7 @@ class controllerRoom {
         [Op.like]: `%${query ?? ""}%`,
       },
       visibility: true,
+      status_room: "waiting",
     };
     try {
       const getListRoom = await roomModel.findAndCountAll({
@@ -520,6 +842,8 @@ class controllerRoom {
       room_desc,
       hostId,
       bookingId,
+      payment,
+      room_expired,
     } = req.body;
     try {
       const result = await roomModel.create({
@@ -530,7 +854,8 @@ class controllerRoom {
         max_capacity,
         room_desc,
         userId: hostId,
-        room_expired: new Date(getOneDayTimeStamps(new Date())),
+        room_expired: new Date(room_expired),
+        // room_expired: new Date(getOneDayTimeStamps(new Date())),
         bookingId,
       });
 
@@ -540,7 +865,10 @@ class controllerRoom {
           userId: hostId,
           qty: 1,
           status_approved: "approved",
+          payment: payment,
         });
+
+        paymentUser(hostId, payment);
 
         if (postToRoomDetail?.id) {
           responseJSON({

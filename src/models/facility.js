@@ -2,6 +2,7 @@ const { DataTypes } = require("sequelize");
 const database = require("../../database");
 const merchantModel = require("./merchant");
 const categoryModel = require("./category");
+const promoModel = require("./promo");
 
 const facility = database.define(
   "facility",
@@ -55,11 +56,12 @@ facility.sync({
 merchantModel.hasMany(facility, {
   foreignKey: "merchantId",
 });
-facility.belongsTo(merchantModel);
 
 categoryModel.hasMany(facility, {
   foreignKey: "categoryId",
 });
+
 facility.belongsTo(categoryModel);
+facility.belongsTo(merchantModel);
 
 module.exports = facility;

@@ -16,6 +16,10 @@ const message = database.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    status: {
+      type: DataTypes.ENUM("responded", "ignored"),
+      allowNull: true,
+    },
   },
   {
     timestamps: true,

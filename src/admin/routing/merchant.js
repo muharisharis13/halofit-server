@@ -20,6 +20,7 @@ router.get(
 router.put(
   "/:merchantId",
   isAuthenticationTokenMerchant,
+  multer.uploadBannerMerchant.single("banner_img"),
   controllerMerchant.editMerchant
 );
 router.put(

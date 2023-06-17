@@ -16,7 +16,7 @@ const userTask = database.define(
     },
     taskDetailId: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     status: {
       type: DataTypes.ENUM("berjalan", "selesai"),
@@ -30,7 +30,7 @@ const userTask = database.define(
 );
 
 userTask.sync({
-  alter: true,
+  alter: false,
 });
 
 taskModel.hasMany(userTask, {

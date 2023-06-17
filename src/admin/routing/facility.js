@@ -16,5 +16,31 @@ router.get(
   isAuthenticationTokenMerchant,
   controllerFacility.getListFacility
 );
+router.post(
+  "/time/:facilityId",
+  isAuthenticationTokenMerchant,
+  controllerFacility.getTimePlay
+);
+router.get(
+  "/:merchantId",
+  isAuthenticationTokenMerchant,
+  controllerFacility.getBookingFacility
+);
+router.get(
+  "/detail/:facilityId",
+  isAuthenticationTokenMerchant,
+  controllerFacility.getDetailFacility
+);
+router.put(
+  "/detail/:facilityId",
+  isAuthenticationTokenMerchant,
+  uploadBannner.single("banner_img"),
+  controllerFacility.EditFacility
+);
+router.delete(
+  "/:facilityId",
+  isAuthenticationTokenMerchant,
+  controllerFacility.deleteFacility
+);
 
 module.exports = router;
