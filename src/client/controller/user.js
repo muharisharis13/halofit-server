@@ -22,7 +22,14 @@ class controllerUser {
       responseJSON({
         res,
         status: 200,
-        data: result,
+        data: {
+          user_info: {
+            ...result.dataValues,
+            profile_img: `${fullURL(req)}${pathProfile}/${
+              result.dataValues?.profile_img
+            }`,
+          },
+        },
       });
     } catch (error) {
       responseJSON({
@@ -49,6 +56,11 @@ class controllerUser {
           id: userId,
         },
       });
+      if (req.file?.filename) {
+        user.update({
+          profile_img: req.file?.filename,
+        });
+      }
 
       user.update({
         username,
@@ -56,7 +68,6 @@ class controllerUser {
         age,
         phone_number,
         bio,
-        profile_img: `${fullURL(req)}${pathProfile}/${req.file.filename}`,
       });
 
       responseJSON({

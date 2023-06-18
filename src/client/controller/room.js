@@ -12,6 +12,7 @@ const categoryModel = require("../../models/category");
 const roomDetail = require("../../models/room_detail");
 const { responseJSON } = general;
 const { getPagination, getPagingData } = paging;
+const { fullURL, pathMerchant, pathBanner } = require("../../../utils/url");
 
 const getOneDayTimeStamps = (date) => {
   let newDate = new Date(new Date(date).getTime() + 24 * 60 * 60 * 1000);
@@ -719,20 +720,47 @@ class controllerRoom {
         ],
       });
 
+      const getFacility = await facilityModel.findOne({
+        where: {
+          id: result.dataValues.facilityId,
+        },
+        include: [
+          {
+            model: categoryModel,
+            as: "category",
+            attributes: {
+              exclude: ["password", "createdAt", "updatedAt"],
+            },
+          },
+          {
+            model: merchantModel,
+            as: "merchant",
+            attributes: {
+              exclude: ["password", "createdAt", "updatedAt", "balance"],
+            },
+          },
+        ],
+      });
+
+      const newData = {
+        ...result.dataValues,
+        facility: {
+          ...getFacility.dataValues,
+          banner_img: `${fullURL(req)}${pathBanner}/${
+            getFacility.dataValues.banner_img
+          }`,
+        },
+        hostId: result.dataValues.userId,
+        isJoin: getDetailRoom.some(
+          (filter) => filter.dataValues.userId == user_id
+        ),
+        room_detail: getDetailRoom,
+      };
+
       responseJSON({
         res,
         status: 200,
-        data: {
-          ...result.dataValues,
-          hostId: result.dataValues.userId,
-          isJoin:
-            getDetailRoom.filter(
-              (filter) => filter.dataValues.userId == user_id
-            ).length == 1
-              ? true
-              : false,
-          room_detail: getDetailRoom,
-        },
+        data: newData,
       });
     } catch (error) {
       responseJSON({
@@ -742,6 +770,7 @@ class controllerRoom {
       });
     }
   }
+
   async getListRoom(req, res) {
     const {
       page = 1,
@@ -808,15 +837,31 @@ class controllerRoom {
 
       // console.log({ getDetailRoom })
 
+      const getFacility = await facilityModel.findAll();
+
       const newList = {
         count: getListRoom.count,
-        rows: getListRoom.rows.map((item) => ({
-          ...item.dataValues,
-          room_detail: getDetailRoom.filter(
-            (filter) => filter.roomId == item.dataValues.id
-          ),
-          // room_detail: getDetailRoom(item.id)
-        })),
+        rows: getListRoom.rows.map((item) => {
+          const facility = getFacility.find(
+            (filter) => filter.dataValues?.id === item?.dataValues?.facilityId
+          );
+          const facilityData = facility
+            ? {
+                ...facility.dataValues,
+                banner_img: `${fullURL(req)}${pathBanner}/${
+                  facility?.dataValues?.banner_img
+                }`,
+              }
+            : null;
+
+          return {
+            ...item.dataValues,
+            facility: facilityData,
+            room_detail: getDetailRoom.filter(
+              (filter) => filter.roomId == item.dataValues.id
+            ),
+          };
+        }),
       };
 
       responseJSON({
@@ -828,7 +873,7 @@ class controllerRoom {
       responseJSON({
         res,
         status: 500,
-        data: error.errors?.map((item) => item.message) || error,
+        data: error.message,
       });
     }
   }

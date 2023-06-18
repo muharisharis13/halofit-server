@@ -7,6 +7,7 @@ const { Op } = require("sequelize");
 const featureModel = require("../../models/feature");
 const { responseJSON } = general;
 const { getPagination, getPagingData } = paging;
+const { fullURL, pathMerchant, pathBanner } = require("../../../utils/url");
 
 class controllerMerchant {
   async getDetailMerchant(req, res) {
@@ -16,7 +17,6 @@ class controllerMerchant {
         where: {
           id: merchantId,
         },
-        raw: true,
       });
       const resultFacility = await facilityModel.findAll({
         where: {
@@ -41,21 +41,41 @@ class controllerMerchant {
           },
         ],
       });
+      const getFacilities = await facilityModel.findAll({
+        where: {
+          merchantId,
+        },
+      });
+      const newData = {
+        ...result.dataValues,
+        img_merchant: `${fullURL(req)}${pathMerchant}/${
+          result?.dataValues?.img_merchant
+        }`,
+        facility: resultFacility.map((facility) => ({
+          ...facility.dataValues,
+          banner_img: `${fullURL(req)}${pathBanner}/${
+            facility?.dataValues?.banner_img
+          }`,
+        })),
+        feature: getFeature,
+        facilityImages: getFacilities.map((facility) => ({
+          ...facility.dataValues,
+          banner_img: `${fullURL(req)}${pathBanner}/${
+            facility?.dataValues?.banner_img
+          }`,
+        })),
+      };
 
       responseJSON({
         res,
         status: 200,
-        data: {
-          ...result,
-          facility: resultFacility,
-          feature: getFeature,
-        },
+        data: newData,
       });
     } catch (error) {
       responseJSON({
         res,
         status: 500,
-        data: error.errors?.map((item) => item.message) || error,
+        data: error.message,
       });
     }
   }

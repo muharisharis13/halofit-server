@@ -186,7 +186,7 @@ class controllerFacility {
       req.body;
 
     try {
-      if (req.file) {
+      if (req.file?.filename) {
         const result = await facilityModel.create({
           merchantId,
           facility_name,
@@ -237,7 +237,12 @@ class controllerFacility {
         status: 200,
         data: {
           ...merchantData.dataValues,
-          facility_info: facilityData,
+          facility_info: {
+            ...facilityData.dataValues,
+            banner_img: `${fullURL(req)}${pathBanner}/${
+              facilityData.dataValues?.banner_img
+            }`,
+          },
         },
       });
     } catch (error) {
