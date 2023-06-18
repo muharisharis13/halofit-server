@@ -165,6 +165,7 @@ class controllerMerchant {
   }
   async addFacility(req, res) {
     const { merchantId, facility_name, price, categoryId, time } = req.body;
+
     try {
       if (req.file) {
         const result = await facilityModel.create({
@@ -222,22 +223,25 @@ class controllerMerchant {
     const { facilityId } = req.params;
     const { facility_name, price } = req.body;
     try {
-      if (!req.file) {
-        responseJSON({
-          res,
-          status: 400,
-          data: "File Must be Upload !",
-        });
-      }
       const result = await facilityModel.findOne({
         where: {
           id: facilityId,
         },
       });
+      if (req.file?.filename) {
+        result.update({
+          banner_img: req.file?.filename,
+        });
+      }
       result.update({
         facility_name,
         price,
-        banner_img: `${fullURL(req)}${pathBanner}/${req.file.filename}`,
+      });
+
+      responseJSON({
+        res,
+        status: 200,
+        data: result,
       });
     } catch (error) {
       responseJSON({
@@ -264,7 +268,14 @@ class controllerMerchant {
       responseJSON({
         res,
         status: 200,
-        data: result,
+        data: {
+          facility_info: {
+            ...result.dataValues,
+            banner_img: `${fullURL(req)}${pathBanner}/${
+              result.dataValues?.banner_img
+            }`,
+          },
+        },
       });
     } catch (error) {
       responseJSON({

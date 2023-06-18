@@ -27,7 +27,11 @@ class controllerTask {
           getUserTask?.dataValues?.taskDetailId?.split(",") || [];
         console.log("length", taskDetailIdUser.length);
         //jika task detail dari user tidak ada maka buat baru untuk nambahkan task id nya
-        if (!taskDetailIdUser || taskDetailIdUser.length < 3) {
+        if (
+          !taskDetailIdUser ||
+          taskDetailIdUser.length < 2 ||
+          taskDetailIdUser === []
+        ) {
           taskDetailId = JSON.parse(taskDetailId);
           taskDetailIdUser.push(taskDetailId);
 
@@ -82,6 +86,7 @@ class controllerTask {
             taskDetailId: taskDetailIdUser.join(","),
             status: isComplete ? "selesai" : "berjalan",
           });
+          const userId = getUserTask.dataValues?.userId;
           const findUser = await userModel.findOne({
             where: {
               id: userId,
@@ -89,12 +94,14 @@ class controllerTask {
           });
 
           if (!findUser) throw Error("User Tidak Ditemukan");
+          console.log("Tambah Poin");
 
           findUser.update({
             point:
               parseInt(findUser?.dataValues?.point) +
-              parseInt(task?.dataValues.poin),
+              parseInt(task?.dataValues?.poin),
           });
+          console.log("Jalankan cari user");
         }
 
         responseJSON({

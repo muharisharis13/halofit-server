@@ -8,7 +8,7 @@ const { Op } = require("sequelize");
 const featureModel = require("../../models/feature");
 const facilityModel = require("../../models/facility");
 const categoryModel = require("../../models/category");
-const { fullURL, pathMerchant } = require("../../../utils/url");
+const { fullURL, pathMerchant, pathBanner } = require("../../../utils/url");
 
 class controllerMerchant {
   async updateMerchantTime(req, res) {
@@ -387,9 +387,16 @@ class controllerMerchant {
 
         const newCategory = category.map((item) => ({
           ...item.dataValues,
-          facility: getFacility.filter(
-            (filter) => filter.dataValues?.categoryId == item?.dataValues.id
-          ),
+          facility: getFacility
+            .filter(
+              (filter) => filter.dataValues?.categoryId == item?.dataValues.id
+            )
+            .map((item2) => ({
+              ...item2.dataValues,
+              banner_img: `${fullURL(req)}${pathBanner}/${
+                item2?.dataValues?.banner_img
+              }`,
+            })),
         }));
 
         responseJSON({
@@ -429,6 +436,12 @@ class controllerMerchant {
                     JSON.parse(getMerchantTime.dataValues.saturday),
                 }
               : null,
+            merchant_info: {
+              ...result.dataValues,
+              img_merchant: `${fullURL(req)}${pathMerchant}/${
+                result.dataValues?.img_merchant
+              }`,
+            },
             facility: getFacility,
             category_facility: newCategory,
           },
