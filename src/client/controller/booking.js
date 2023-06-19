@@ -254,7 +254,7 @@ class controllerBooking {
       userId,
       time,
       payment = false,
-      type = "reserve",
+      type,
     } = req.body;
     try {
       const getUser = await userModel.findOne({

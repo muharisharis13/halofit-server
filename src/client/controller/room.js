@@ -12,7 +12,12 @@ const categoryModel = require("../../models/category");
 const roomDetail = require("../../models/room_detail");
 const { responseJSON } = general;
 const { getPagination, getPagingData } = paging;
-const { fullURL, pathMerchant, pathBanner } = require("../../../utils/url");
+const {
+  fullURL,
+  pathMerchant,
+  pathBanner,
+  pathProfile,
+} = require("../../../utils/url");
 
 const getOneDayTimeStamps = (date) => {
   let newDate = new Date(new Date(date).getTime() + 24 * 60 * 60 * 1000);
@@ -154,6 +159,7 @@ class controllerRoom {
 
       getRoom = getRoom.map((item) => ({
         ...item.dataValues,
+        banner_img: `${fullURL(req)}${pathBanner}/${item.facility.banner_img}`,
         list_user: getDetailRoom.filter(
           (filter) => filter.dataValues?.roomId == item.dataValues?.id
         ),
@@ -741,6 +747,10 @@ class controllerRoom {
           },
         ],
       });
+      const updatedDetailRoom = getDetailRoom.map((item) => ({
+        ...item.dataValues,
+        profile_img: `${fullURL(req)}${pathProfile}/${item.user?.profile_img}`,
+      }));
 
       const newData = {
         ...result.dataValues,
@@ -754,7 +764,7 @@ class controllerRoom {
         isJoin: getDetailRoom.some(
           (filter) => filter.dataValues.userId == user_id
         ),
-        room_detail: getDetailRoom,
+        room_detail: updatedDetailRoom,
       };
 
       responseJSON({
@@ -766,7 +776,7 @@ class controllerRoom {
       responseJSON({
         res,
         status: 400,
-        data: error.errors?.map((item) => item.message) || error,
+        data: error.message,
       });
     }
   }
@@ -836,17 +846,8 @@ class controllerRoom {
       });
 
       // console.log({ getDetailRoom })
-      const getFacility = await facilityModel.findAll({
-        include: [
-          {
-            model: merchantModel,
-            as: "merchant",
-            attributes: {
-              exclude: ["password", "createdAt", "updatedAt", "balance"],
-            },
-          },
-        ],
-      });
+
+      const getFacility = await facilityModel.findAll();
 
       const newList = {
         count: getListRoom.count,
