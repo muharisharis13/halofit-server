@@ -418,12 +418,17 @@ class controllerTask {
         });
       }
 
+      if (res.file?.filename) {
+        getDetailTask.update({
+          banner_img: req.file.filename,
+        });
+      }
+
       if (getDetailTask) {
         getDetailTask.update({
           task_name,
           expiredIn,
           poin,
-          banner_img: `${fullURL(req)}${pathBannerTask}/${req.file.filename}`,
         });
       }
 
@@ -556,7 +561,7 @@ class controllerTask {
         task_name,
         expiredIn,
         poin,
-        banner_img: `${fullURL(req)}${pathBannerTask}/${req.file.filename}`,
+        banner_img: req.file.filename,
       });
 
       const id = result.id;

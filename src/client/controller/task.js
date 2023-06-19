@@ -7,7 +7,15 @@ const { getPagination, getPagingData } = paging;
 const merchantModel = require("../../models/merchant");
 const moment = require("moment");
 const taskUserModel = require("../../models/user_task");
-
+const facilityModel = require("../../models/facility");
+const categoryModel = require("../../models/category");
+const {
+  fullURL,
+  pathMerchant,
+  pathBanner,
+  pathBannerTask,
+  pathPromo,
+} = require("../../../utils/url");
 const diffDays = (date1, date2) => {
   return parseInt(
     (new Date(date2) - new Date(date1)) / (1000 * 60 * 60 * 24),
@@ -43,7 +51,12 @@ class controllerTask {
         res,
         status: 200,
         data: {
-          task_info: resultTask,
+          task_info: {
+            ...resultTask.dataValues,
+            banner_img: `${fullURL(req)}${pathBannerTask}/${
+              resultTask.dataValues?.banner_img
+            }`,
+          },
           task_detail: resultTaskDetail.map((item) => ({
             ...item,
             list_user: JSON.parse(item.list_user) || [],
@@ -111,6 +124,9 @@ class controllerTask {
 
         getOneUserTask = {
           ...getOneUserTask.dataValues,
+          banner_img: `${fullURL(req)}${pathBannerTask}/${
+            getOneUserTask.task.banner_img
+          }`,
           taskDetailId: taskDetailId(),
           task_detail: taskDetail.map((item) => ({
             ...item?.dataValues,
@@ -182,6 +198,7 @@ class controllerTask {
         include: [
           {
             model: taskModel,
+            as: "task",
             include: [
               {
                 model: merchantModel,
@@ -221,6 +238,7 @@ class controllerTask {
 
       getTaskUser = getTaskUser.map((item) => ({
         ...item.dataValues,
+        banner_img: `${fullURL(req)}${pathBannerTask}/${item.task.banner_img}`,
         task_detail: filterTaskDetail(item),
         taskDetailId: taskDetailId(item),
         current_poin: currentPoin(item),
@@ -279,6 +297,7 @@ class controllerTask {
       const combineTask = getListTask
         .map((item) => ({
           ...item,
+          banner_img: `${fullURL(req)}${pathBannerTask}/${item.banner_img}`,
           total_task: newTaskDetail.filter(
             (filter) => filter.taskId === item.id
           ).length,
@@ -342,14 +361,16 @@ class controllerTask {
           {
             model: merchantModel,
             as: "merchant",
-            attributes: {
-              exclude: [
-                "createdAt",
-                "updatedAt",
-                "password",
-                "desc",
-                "balance",
-              ],
+            attributes: ["id", "merchant_name"],
+            include: {
+              model: facilityModel,
+              as: "facilities",
+              attributes: ["id"],
+              include: {
+                model: categoryModel,
+                as: "category",
+                attributes: ["category_name"],
+              },
             },
           },
         ],
@@ -364,6 +385,7 @@ class controllerTask {
         count: getListTask.count,
         rows: getListTask.rows.map((item) => ({
           ...item.dataValues,
+          banner_img: `${fullURL(req)}${pathBannerTask}/${item.banner_img}`,
           list_task: getDetailTask.filter(
             (filter) => filter.taskId == item.dataValues.id
           ),

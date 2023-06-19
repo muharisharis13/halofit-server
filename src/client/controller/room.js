@@ -836,8 +836,17 @@ class controllerRoom {
       });
 
       // console.log({ getDetailRoom })
-
-      const getFacility = await facilityModel.findAll();
+      const getFacility = await facilityModel.findAll({
+        include: [
+          {
+            model: merchantModel,
+            as: "merchant",
+            attributes: {
+              exclude: ["password", "createdAt", "updatedAt", "balance"],
+            },
+          },
+        ],
+      });
 
       const newList = {
         count: getListRoom.count,

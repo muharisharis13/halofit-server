@@ -6,6 +6,12 @@ const userPromoModel = require("../../models/user_promo");
 const { general, paging } = require("../../../utils");
 const { responseJSON } = general;
 const userModel = require("../../models/user");
+const {
+  fullURL,
+  pathMerchant,
+  pathBanner,
+  pathPromo,
+} = require("../../../utils/url");
 
 class controllerPromo {
   async getPromo(req, res) {
@@ -29,16 +35,21 @@ class controllerPromo {
           },
         ],
       });
+      const newData = getPromo.map((promo) => ({
+        ...promo.toJSON(),
+        promo_img: `${fullURL(req)}${pathPromo}/${promo.promo_img}`,
+      }));
+
       responseJSON({
         res,
         status: 200,
-        data: getPromo,
+        data: newData,
       });
     } catch (error) {
       responseJSON({
         res,
         status: 500,
-        data: console.log(error.message),
+        data: error.message,
       });
     }
   }
@@ -99,10 +110,14 @@ class controllerPromo {
           },
         ],
       });
+      const newData = getOwnPromo.map((promo) => ({
+        ...promo.toJSON(),
+        promo_img: `${fullURL(req)}${pathPromo}/${promo.promo.promo_img}`,
+      }));
       responseJSON({
         res,
         status: 200,
-        data: getOwnPromo,
+        data: newData,
       });
     } catch (error) {
       responseJSON({

@@ -71,7 +71,7 @@ class controllerPromo {
           point,
           ExpiredIn,
           cost,
-          promo_img: `${fullURL(req)}${pathPromo}/${req.file.filename}`,
+          promo_img: req.file.filename,
           status_promo,
         });
 
@@ -112,13 +112,17 @@ class controllerPromo {
           id: idPromo,
         },
       });
+      if (req.file?.filename) {
+        result.update({
+          promo_img: req.file.filename,
+        });
+      }
       result.update({
         promo_name,
         merchantId,
         point,
         ExpiredIn,
         cost,
-        promo_img: `${fullURL(req)}${pathPromo}/${req.file.filename}`,
       });
 
       responseJSON({
