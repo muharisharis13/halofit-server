@@ -8,6 +8,7 @@ const featureRouter = require("./feature");
 const bookingRouter = require("./booking");
 const walletRouter = require("./wallet");
 const promoRouter = require("./promo");
+const historyRouter = require("./history");
 
 const { pathRouterAdmin } = url;
 
@@ -21,6 +22,7 @@ const Routing = (app) => {
   app.use(pathRouterAdmin("booking"), bookingRouter);
   app.use(pathRouterAdmin("wallet"), walletRouter);
   app.use(pathRouterAdmin("promo"), promoRouter);
+  app.use(pathRouterAdmin("history"), historyRouter);
 };
 
 module.exports = Routing;

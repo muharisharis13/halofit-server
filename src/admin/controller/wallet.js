@@ -1,6 +1,7 @@
 const merchantModel = require("../../models/merchant");
 const { general } = require("../../../utils");
 const { responseJSON, hash } = general;
+const historyModel = require("../../models/history_merchant");
 
 class walletController {
   async withdraw(req, res) {
@@ -18,6 +19,10 @@ class walletController {
           if (result) {
             result.update({
               balance: parseInt(result.dataValues?.balance) - parseInt(nominal),
+            });
+            historyModel.create({
+              nominal: 0 - parseInt(nominal),
+              merchantId,
             });
           }
         });

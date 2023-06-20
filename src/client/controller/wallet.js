@@ -2,6 +2,7 @@ const userModel = require("../../models/user");
 
 const { general } = require("../../../utils");
 const { responseJSON } = general;
+const historyModel = require("../../models/history_user");
 
 class Wallet {
   async topUp(req, res) {
@@ -18,6 +19,12 @@ class Wallet {
           if (result) {
             result.update({
               balance: parseInt(result.dataValues?.balance) + parseInt(nominal),
+            });
+            historyModel.create({
+              userId,
+              type: "payment",
+              description: "Isi dompet",
+              nominal: parseInt(nominal),
             });
           }
         });
@@ -53,6 +60,12 @@ class Wallet {
               balance: result.dataValues?.balance - parseInt(nominal),
             });
           }
+          historyModel.create({
+            userId,
+            type: "payment",
+            description: "Tarik dompet",
+            nominal: 0 - parseInt(nominal),
+          });
         });
       responseJSON({
         res,

@@ -6,6 +6,9 @@ const { Op } = require("sequelize");
 const userModel = require("../../models/user");
 const merchantModel = require("../../models/merchant");
 const facilityModel = require("../../models/facility");
+const historyModel = require("../../models/history_user");
+const roomDetail = require("../../models/room_detail");
+const roomModel = require("../../models/room");
 
 class controllerBooking {
   async deleteBooking(req, res) {
@@ -113,6 +116,12 @@ class controllerBooking {
               balance: parseInt(getUser?.balance) + parseInt(refundPayment),
             });
           }
+          historyModel.create({
+            nominal: parseInt(refundMitra),
+            description: "Cancel di " + getFacility.dataValues?.facility_name,
+            type: "reserve",
+            userId: userId,
+          });
 
           getUserBooking.update({
             show: false,
@@ -288,7 +297,32 @@ class controllerBooking {
         getUser.update({
           balance: parseInt(getUser?.dataValues?.balance) - parseInt(total),
         });
+        const nominalPayment = 0 - parseInt(total);
+        const facility = await facilityModel.findOne({
+          where: {
+            id: facilityId,
+          },
+        });
+
+        historyModel.create({
+          nominal: 0 - parseInt(nominalPayment),
+          description: "Reservasi di " + facility.dataValues?.facility_name,
+          type: "reserve",
+          userId: userId,
+        });
       }
+      // const booking = await bookingModel.findAll();
+      // const roomDetail = await roomModel.findAll();
+      // const description = booking.map((item) => {
+      //   const room = roomDetail.filter(
+      //     (room) => room.dataValues?.bookingId === item.dataValues?.id
+      //   );
+
+      //   return {
+      //     ...item.dataValues,
+      //     room_name: room ? room.room_name : "",
+      //   };
+      // });
 
       responseJSON({
         res,

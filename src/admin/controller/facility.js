@@ -128,26 +128,27 @@ class controllerMerchant {
           ? getListTIme(JSON.parse(resultFacility.dataValues.time))
           : [],
       };
-
       const newData = {
         ...data,
         list_time: data.list_time?.map((item) => {
           const isBooked = letNewTime.includes(item);
-          const booking = getBooking.find((booking) =>
+          const bookings = getBooking.filter((booking) =>
             JSON.parse(booking.time).includes(item)
           );
+          const bookingModels = bookings.filter((booking) => booking.type);
           return {
             time: item,
             available: !isBooked,
+            type: bookingModels.length > 0 ? bookingModels[0].type : null,
             ...(isBooked &&
-              booking && {
-                username: booking.user?.username,
-                phone_number: booking.user?.phone_number,
+              bookings.length > 0 && {
+                username: bookings[0].user?.username,
+                phone_number: bookings[0].user?.phone_number,
               }),
           };
         }),
       };
-
+      console.log({ letNewTime });
       console.log({ letNewTime });
 
       responseJSON({

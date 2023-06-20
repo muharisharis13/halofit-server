@@ -18,6 +18,7 @@ const {
   pathBanner,
   pathProfile,
 } = require("../../../utils/url");
+const historyModel = require("../../models/history_user");
 
 const getOneDayTimeStamps = (date) => {
   let newDate = new Date(new Date(date).getTime() + 24 * 60 * 60 * 1000);
@@ -92,6 +93,21 @@ class controllerRoom {
           balance:
             parseInt(getUser.dataValues?.balance) + parseInt(finalPayment),
         });
+        const getRoom = await roomModel.findOne({
+          where: {
+            id: roomId,
+          },
+        });
+        try {
+          await historyModel.create({
+            nominal: parseInt(finalPayment),
+            description: "Pengembalian DP " + getRoom.dataValues?.room_name,
+            type: "meetup",
+            userId: userId,
+          });
+        } catch (error) {
+          console.log(error);
+        }
         result.update({
           // merubah status dari waiting ke playing
           status_room: "playing",
@@ -398,6 +414,21 @@ class controllerRoom {
                 parseInt(returnPayment) +
                 parseInt(getUserHost?.dataValues?.balance),
             });
+            const getRoom = await roomModel.findOne({
+              where: {
+                id: roomId,
+              },
+            });
+            try {
+              await historyModel.create({
+                nominal: parseInt(returnPayment),
+                description: "Pengembalian DP " + getRoom.dataValues?.room_name,
+                type: "meetup",
+                userId: userId,
+              });
+            } catch (error) {
+              console.log(error);
+            }
           }
         }
 
@@ -466,6 +497,21 @@ class controllerRoom {
               userId,
             },
           });
+          const getRoom = await roomModel.findOne({
+            where: {
+              id: roomId,
+            },
+          });
+          try {
+            await historyModel.create({
+              nominal: 0 - parseInt(result?.dataValues.payment),
+              description: "Cancel Meetup " + getRoom.dataValues?.room_name,
+              type: "meetup",
+              userId: userId,
+            });
+          } catch (error) {
+            console.log(error);
+          }
 
           responseJSON({
             res,
@@ -530,13 +576,28 @@ class controllerRoom {
               },
             ]),
           });
-
-          responseJSON({
-            res,
-            status: 200,
-            data: "Ready Join Again !",
-          });
         }
+        const getRoom = await roomModel.findOne({
+          where: {
+            id: roomId,
+          },
+        });
+        try {
+          await historyModel.create({
+            nominal: 0 - payment,
+            description: getRoom.dataValues?.room_name,
+            type: "meetup",
+            userId: userId,
+          });
+        } catch (error) {
+          console.log(error);
+        }
+
+        responseJSON({
+          res,
+          status: 200,
+          data: "Ready Join Again !",
+        });
       } else {
         const result = await roomDetailModel.create({
           roomId,

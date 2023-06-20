@@ -58,10 +58,9 @@ class controllerUser {
       });
       if (req.file?.filename) {
         user.update({
-          profile_img: req.file?.filename,
+          profile_img: req.file.filename,
         });
       }
-
       user.update({
         username,
         gender,

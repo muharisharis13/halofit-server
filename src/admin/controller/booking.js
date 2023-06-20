@@ -78,6 +78,8 @@ class controllerBooking {
       });
     }
   }
+
+  async confirmPayment(req, res) {}
 }
 
 module.exports = new controllerBooking();

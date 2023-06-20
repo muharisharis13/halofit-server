@@ -10,9 +10,10 @@ const taskRouter = require("./task");
 const notificationRouter = require("./notifications");
 const walletRouter = require("./wallet");
 const promoRouter = require("./promo");
+const historyRouter = require("./history");
 const { url } = require("../../../utils");
-
 const { pathRouterClient } = url;
+
 const Routing = (app) => {
   app.use(pathRouterClient("authentication"), AuthenticationRouter);
   app.use(pathRouterClient("booking"), BookingRouter);
@@ -26,6 +27,7 @@ const Routing = (app) => {
   app.use(pathRouterClient("notification"), notificationRouter);
   app.use(pathRouterClient("wallet"), walletRouter);
   app.use(pathRouterClient("promo"), promoRouter);
+  app.use(pathRouterClient("history"), historyRouter);
 };
 
 module.exports = Routing;
