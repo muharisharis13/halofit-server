@@ -16,10 +16,15 @@ class controllerPromo {
           merchantId,
         },
       });
+
+      const newResult = result.map((item) => ({
+        ...item.dataValues,
+        promo_img: `${fullURL(req)}${pathPromo}/${item.dataValues?.promo_img}`,
+      }));
       responseJSON({
         res,
         status: 200,
-        data: result,
+        data: newResult,
       });
     } catch (error) {
       responseJSON({
@@ -38,10 +43,16 @@ class controllerPromo {
           id: idPromo,
         },
       });
+      const newResult = {
+        ...result.dataValues,
+        promo_img: `${fullURL(req)}${pathPromo}/${
+          result.dataValues?.promo_img
+        }`,
+      };
       responseJSON({
         res,
         status: 200,
-        data: result,
+        data: newResult,
       });
     } catch (error) {
       responseJSON({

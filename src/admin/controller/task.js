@@ -476,11 +476,18 @@ class controllerTask {
           },
         });
 
+        const newTask = {
+          ...getDetailTask.dataValues,
+          banner_img: `${fullURL(req)}${pathBannerTask}/${
+            getDetailTask.dataValues?.banner_img
+          }`,
+        };
+
         responseJSON({
           res,
           status: 200,
           data: {
-            ...getDetailTask?.dataValues,
+            ...newTask,
             list_task: getListTask,
           },
         });
@@ -527,17 +534,24 @@ class controllerTask {
         offset,
         order: [["id", "DESC"]],
       });
+      const newData = {
+        count: getTask.count,
+        rows: getTask.rows.map((item) => ({
+          ...item.dataValues,
+          banner_img: `${fullURL(req)}${pathBannerTask}/${item.banner_img}`,
+        })),
+      };
 
       responseJSON({
         res,
         status: 200,
-        data: getPagingData(getTask, page, limit),
+        data: getPagingData(newData, page, limit),
       });
     } catch (error) {
       responseJSON({
         res,
         status: 500,
-        data: error.errors?.map((item) => item.message) || error,
+        data: error.message,
       });
     }
   }

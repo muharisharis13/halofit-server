@@ -110,10 +110,14 @@ class controllerPromo {
           },
         ],
       });
-      const newData = getOwnPromo.map((promo) => ({
-        ...promo.toJSON(),
-        promo_img: `${fullURL(req)}${pathPromo}/${promo.promo.promo_img}`,
-      }));
+
+      const newData = getOwnPromo.map((promo) => {
+        const promoData = promo.toJSON();
+        promoData.promo.promo_img = `${fullURL(req)}${pathPromo}/${
+          promo.promo.promo_img
+        }`;
+        return promoData;
+      });
       responseJSON({
         res,
         status: 200,

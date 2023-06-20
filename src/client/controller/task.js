@@ -122,11 +122,29 @@ class controllerTask {
           );
         };
 
-        getOneUserTask = {
+        const getTask = await taskModel.findOne({
+          where: {
+            id: taskId,
+          },
+          include: [
+            {
+              model: merchantModel,
+              as: "merchant",
+            },
+          ],
+        });
+        const newUserTask = {
           ...getOneUserTask.dataValues,
-          banner_img: `${fullURL(req)}${pathBannerTask}/${
-            getOneUserTask.task.banner_img
-          }`,
+          task: {
+            ...getTask.dataValues,
+            banner_img: `${fullURL(req)}${pathBannerTask}/${
+              getTask.dataValues.banner_img
+            }`,
+          },
+        };
+
+        getOneUserTask = {
+          ...newUserTask,
           taskDetailId: taskDetailId(),
           task_detail: taskDetail.map((item) => ({
             ...item?.dataValues,
@@ -236,23 +254,37 @@ class controllerTask {
         );
       };
 
-      getTaskUser = getTaskUser.map((item) => ({
-        ...item.dataValues,
-        banner_img: `${fullURL(req)}${pathBannerTask}/${item.task.banner_img}`,
-        task_detail: filterTaskDetail(item),
-        taskDetailId: taskDetailId(item),
-        current_poin: currentPoin(item),
-        percentage: percentage(item),
-        expiredInDays: diffDays(
-          moment(new Date()).format("YYYY-MM-DD"),
-          moment(new Date(item.dataValues.task.expiredIn)).format("YYYY-MM-DD")
-        ),
-      }));
+      const getTask = await taskModel.findAll({
+        include: [
+          {
+            model: merchantModel,
+            as: "merchant",
+          },
+        ],
+      });
+      const newTaskProgress = getTaskUser.map((item) => {
+        const task = getTask.find((task) => task.id === item.taskId);
+        return {
+          ...item.dataValues,
+          task: {
+            ...task.dataValues,
+            banner_img: `${fullURL(req)}${pathBannerTask}/${task.banner_img}`,
+          },
+          task_detail: filterTaskDetail(item),
+          taskDetailId: taskDetailId(item),
+          current_poin: currentPoin(item),
+          percentage: percentage(item),
+          expiredInDays: diffDays(
+            moment(new Date()).format("YYYY-MM-DD"),
+            moment(new Date(task.expiredIn)).format("YYYY-MM-DD")
+          ),
+        };
+      });
 
       responseJSON({
         res,
         status: 200,
-        data: getTaskUser,
+        data: newTaskProgress,
       });
     } catch (error) {
       responseJSON({
