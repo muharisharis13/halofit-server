@@ -169,6 +169,21 @@ class controllerMerchant {
               },
               // raw: true,
             });
+            const getFacility = await facilityModel.findOne({
+              where: {
+                merchantId,
+              },
+            });
+
+            const updatedTime = Object.entries(parseMerchantTime).find(
+              ([day, time]) => time !== ""
+            );
+            const [day, time] = updatedTime;
+
+            await facilityModel.update(
+              { time: JSON.stringify(time) },
+              { where: { merchantId } }
+            );
 
             if (!getAllMerchantTime) throw Error("Merchant Time Not Found");
 
@@ -176,6 +191,10 @@ class controllerMerchant {
               await getAllMerchantTime.update({
                 [item]: JSON.stringify(parseMerchantTime[item]),
               });
+              // await facilityModel.update(
+              //   { time: JSON.stringify(parseMerchantTime[item]) },
+              //   { where: { merchantId } }
+              // );
               // console.log({ datanya: parseMerchantTime[item] });
             }
 

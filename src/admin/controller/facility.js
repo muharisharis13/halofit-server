@@ -11,20 +11,39 @@ const { fullURL } = url;
 
 const getListTIme = (time) => {
   if (time[0]) {
-    const getOpenTime = time[0].split(":")[0].split("0")[1];
+    const [openTime, closeTime] = time;
+
+    const getOpenHour = parseInt(openTime.split(":")[0]);
+    const getCloseHour = parseInt(closeTime.split(":")[0]);
+
     let arrTime = [];
 
-    for (let i = 0; i <= getOpenTime; i++) {
-      arrTime.push(parseInt(getOpenTime) + parseInt(i));
+    for (let i = getOpenHour; i <= getCloseHour; i++) {
+      const hour = i < 10 ? `0${i}` : `${i}`;
+      arrTime.push(`${hour}:00`);
     }
-
-    arrTime = arrTime.map((item) => (item < 10 ? `0${item}:00` : `${item}:00`));
 
     return arrTime;
   } else {
     return [];
   }
 };
+// const getListTIme = (time) => {
+//   if (time[0]) {
+//     const getOpenTime = time[0].split(":")[0].split("0")[1];
+//     let arrTime = [];
+
+//     for (let i = 0; i <= getOpenTime; i++) {
+//       arrTime.push(parseInt(getOpenTime) + parseInt(i));
+//     }
+
+//     arrTime = arrTime.map((item) => (item < 10 ? `0${item}:00` : `${item}:00`));
+
+//     return arrTime;
+//   } else {
+//     return [];
+//   }
+// };
 
 class controllerMerchant {
   async getListFacility(req, res) {
@@ -222,7 +241,7 @@ class controllerMerchant {
   }
   async EditFacility(req, res) {
     const { facilityId } = req.params;
-    const { facility_name, price } = req.body;
+    const { facility_name, price, time = [] } = req.body;
     try {
       const result = await facilityModel.findOne({
         where: {
