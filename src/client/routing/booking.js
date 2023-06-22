@@ -28,5 +28,10 @@ router.get(
 router.get("/", isAuthenticationToken, controllerBooking.getListBooking);
 router.post("/", isAuthenticationToken, controllerBooking.createBooking);
 router.post("/cancel", isAuthenticationToken, controllerBooking.cancelBooking);
+router.put(
+  "/confirm/:bookingId",
+  isAuthenticationToken,
+  controllerBooking.confirmBooking
+);
 
 module.exports = router;

@@ -1,10 +1,17 @@
 const taskModel = require("../../models/task");
 const { Op } = require("sequelize");
 const merchantModel = require("../../models/merchant");
-const { general, paging } = require("../../../utils");
+const { general, paging, url } = require("../../../utils");
 const taskDetailModel = require("../../models/task_detail");
 const { responseJSON } = general;
 const { getPagination, getPagingData } = paging;
+const {
+  pathProfile,
+  pathPromo,
+  pathBannerTask,
+  pathBanner,
+} = require("../../../utils/url");
+const { fullURL } = url;
 
 class controllerTask {
   async getTask(req, res) {
@@ -44,11 +51,21 @@ class controllerTask {
         order: [["task_name", "DESC"]],
       });
 
+      const newData = {
+        count: getTask.count,
+        rows: getTask.rows.map((item) => ({
+          ...item.dataValues,
+          banner_img: `${fullURL(req)}${pathBannerTask}/${
+            item.dataValues?.banner_img
+          }`,
+        })),
+      };
+
       responseJSON({
         res,
         status: 200,
         data: {
-          task_info: getPagingData(getTask, page, limit),
+          task_info: getPagingData(newData, page, limit),
         },
       });
     } catch (error) {

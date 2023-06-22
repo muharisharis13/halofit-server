@@ -1,9 +1,16 @@
 const PromoModel = require("../../models/promo");
 const { Op } = require("sequelize");
 const merchantModel = require("../../models/merchant");
-const { general, paging } = require("../../../utils");
+const { general, paging, url } = require("../../../utils");
 const { responseJSON } = general;
 const { getPagination, getPagingData } = paging;
+const {
+  pathProfile,
+  pathPromo,
+  pathBannerTask,
+  pathBanner,
+} = require("../../../utils/url");
+const { fullURL } = url;
 
 class controllerPromo {
   async getPromo(req, res) {
@@ -41,10 +48,21 @@ class controllerPromo {
         offset,
         order: [["promo_name", "DESC"]],
       });
+
+      const newData = {
+        count: getPromo.count,
+        rows: getPromo.rows.map((item) => ({
+          ...item.dataValues,
+          promo_img: `${fullURL(req)}${pathPromo}/${
+            item.dataValues?.promo_img
+          }`,
+        })),
+      };
+
       responseJSON({
         res,
         status: 200,
-        data: getPagingData(getPromo, page, limit),
+        data: getPagingData(newData, page, limit),
       });
     } catch (error) {
       responseJSON({

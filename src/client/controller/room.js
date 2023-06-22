@@ -582,17 +582,12 @@ class controllerRoom {
             id: roomId,
           },
         });
-        try {
-          await historyModel.create({
-            nominal: 0 - payment,
-            description: getRoom.dataValues?.room_name,
-            type: "meetup",
-            userId: userId,
-          });
-        } catch (error) {
-          console.log(error);
-        }
-
+        historyModel.create({
+          nominal: 0 - payment,
+          description: getRoom.dataValues?.room_name,
+          type: "meetup",
+          userId: userId,
+        });
         responseJSON({
           res,
           status: 200,
@@ -1003,6 +998,13 @@ class controllerRoom {
             data: result,
           });
         }
+
+        await historyModel.create({
+          nominal: 0 - payment,
+          description: room_name,
+          type: "meetup",
+          userId: hostId,
+        });
       } catch (error) {
         responseJSON({
           res,

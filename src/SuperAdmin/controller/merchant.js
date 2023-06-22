@@ -2,10 +2,17 @@ const merchantModel = require("../../models/merchant");
 const facilityModel = require("../../models/facility");
 const categoryModel = require("../../models/category");
 const { Op } = require("sequelize");
-const { general, paging } = require("../../../utils");
+const { general, paging, url } = require("../../../utils");
 const { responseJSON } = general;
 const { getPagination, getPagingData } = paging;
-
+const {
+  pathProfile,
+  pathMerchant,
+  pathPromo,
+  pathBannerTask,
+  pathBanner,
+} = require("../../../utils/url");
+const { fullURL } = url;
 class controllerMerchant {
   async getMerchant(req, res) {
     const {
@@ -50,10 +57,20 @@ class controllerMerchant {
         order: [["merchant_name", "DESC"]],
       });
 
+      const newData = {
+        count: getMerchant.count,
+        rows: getMerchant.rows.map((item) => ({
+          ...item.dataValues,
+          img_merchant: `${fullURL(req)}${pathMerchant}/${
+            item.dataValues?.img_merchant
+          }`,
+        })),
+      };
+
       responseJSON({
         res: res,
         data: {
-          merchant: getPagingData(getMerchant, page, limit),
+          merchant: getPagingData(newData, page, limit),
         },
         status: 200,
       });

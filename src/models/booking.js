@@ -40,6 +40,11 @@ const booking = database.define(
       type: DataTypes.ENUM("reserve", "meetup"),
       allowNull: false,
     },
+    status_payment: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+      allowNull: false,
+    },
   },
   {
     timestamps: true,

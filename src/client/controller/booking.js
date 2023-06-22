@@ -9,6 +9,7 @@ const facilityModel = require("../../models/facility");
 const historyModel = require("../../models/history_user");
 const roomDetail = require("../../models/room_detail");
 const roomModel = require("../../models/room");
+const historyModelMerchant = require("../../models/history_merchant");
 
 class controllerBooking {
   async deleteBooking(req, res) {
@@ -176,7 +177,7 @@ class controllerBooking {
               {
                 model: merchantModel,
                 as: "merchant",
-                attributes: ["address"],
+                attributes: ["address", "id"],
               },
             ],
           },
@@ -278,6 +279,7 @@ class controllerBooking {
         booking_date,
         userId,
         type,
+        status_payment: false,
         time: time
           ? JSON.stringify(
               JSON.parse(time).map((item, idx) => {
@@ -311,6 +313,72 @@ class controllerBooking {
           userId: userId,
         });
       }
+      // const booking = await bookingModel.findAll();
+      // const roomDetail = await roomModel.findAll();
+      // const description = booking.map((item) => {
+      //   const room = roomDetail.filter(
+      //     (room) => room.dataValues?.bookingId === item.dataValues?.id
+      //   );
+
+      //   return {
+      //     ...item.dataValues,
+      //     room_name: room ? room.room_name : "",
+      //   };
+      // });
+
+      responseJSON({
+        res,
+        status: 200,
+        data: result,
+      });
+    } catch (error) {
+      responseJSON({
+        res,
+        status: 400,
+        data: error.errors?.map((item) => item.message) || error?.message,
+      });
+    }
+  }
+  async confirmBooking(req, res) {
+    const { bookingId } = req.params;
+    const { merchantId, total } = req.body;
+    try {
+      const getMerchant = await merchantModel.findOne({
+        where: {
+          id: merchantId,
+        },
+      });
+      const result = await bookingModel.findOne({
+        where: {
+          id: bookingId,
+        },
+      });
+      console.log("Jalan");
+
+      if (getMerchant) {
+        await result.update({
+          status_payment: true,
+        });
+
+        const updatedBalance =
+          parseInt(getMerchant?.dataValues?.balance) + parseInt(total);
+        await merchantModel.update(
+          {
+            balance: updatedBalance,
+          },
+          {
+            where: {
+              id: merchantId,
+            },
+          }
+        );
+
+        // await historyModelMerchant.create({
+        //   merchantId,
+        //   nominal: parseInt(total),
+        // });
+      }
+
       // const booking = await bookingModel.findAll();
       // const roomDetail = await roomModel.findAll();
       // const description = booking.map((item) => {
