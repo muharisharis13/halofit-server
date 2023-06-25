@@ -6,25 +6,68 @@ const { pathPromo } = require("../../../utils/url");
 const { fullURL } = url;
 const userPromoModel = require("../../models/user_promo");
 const userModel = require("../../models/user.js");
+const { Op } = require("sequelize");
+const { getPagination, getPagingData } = paging;
 
 class controllerPromo {
   async getPromo(req, res) {
     const { merchantId } = req.params;
+    const {
+      page = 1,
+      size = 10,
+      column_name = "promo_name",
+      query = "",
+    } = req.query;
+    const { limit, offset } = getPagination(page, size);
+    const condition = {
+      [Op.or]: [
+        {
+          [column_name]: {
+            [Op.like]: `%${query}%`,
+          },
+        },
+        {
+          promo_name: {
+            [Op.like]: `%${query}%`,
+          },
+        },
+      ],
+    };
     try {
-      const result = await PromoModel.findAll({
+      const result = await PromoModel.findAndCountAll({
         where: {
           merchantId,
+          [Op.or]: [
+            {
+              [column_name]: {
+                [Op.like]: `%${query}%`,
+              },
+            },
+            {
+              promo_name: {
+                [Op.like]: `%${query}%`,
+              },
+            },
+          ],
         },
+        limit,
+        offset,
+        order: [["createdAt", "DESC"]],
       });
 
-      const newResult = result.map((item) => ({
-        ...item.dataValues,
-        promo_img: `${fullURL(req)}${pathPromo}/${item.dataValues?.promo_img}`,
-      }));
+      const newResult = {
+        count: result.count,
+        rows: result.rows.map((item) => ({
+          ...item.dataValues,
+          promo_img: `${fullURL(req)}${pathPromo}/${
+            item.dataValues?.promo_img
+          }`,
+        })),
+      };
       responseJSON({
         res,
         status: 200,
-        data: newResult,
+        data: getPagingData(newResult, page, limit),
       });
     } catch (error) {
       responseJSON({
@@ -175,11 +218,21 @@ class controllerPromo {
 
   async getUserPromo(req, res) {
     const { merchantId } = req.params;
+    const {
+      page = 1,
+      size = 10,
+      column_name = "username",
+      query = "",
+    } = req.query;
+    const { limit, offset } = getPagination(page, size);
     try {
-      const getUserPromo = await userPromoModel.findAll({
+      const getUserPromo = await userPromoModel.findAndCountAll({
         where: {
           merchantId,
         },
+        limit,
+        offset,
+        order: [["createdAt", "DESC"]],
         include: [
           {
             model: PromoModel,
@@ -188,13 +241,27 @@ class controllerPromo {
           {
             model: userModel,
             as: "user",
+            where: {
+              [Op.or]: [
+                {
+                  [column_name]: {
+                    [Op.like]: `%${query}%`,
+                  },
+                },
+                {
+                  username: {
+                    [Op.like]: `%${query}%`,
+                  },
+                },
+              ],
+            },
           },
         ],
       });
       responseJSON({
         res,
         status: 200,
-        data: getUserPromo,
+        data: getPagingData(getUserPromo, page, limit),
       });
     } catch (error) {
       responseJSON({

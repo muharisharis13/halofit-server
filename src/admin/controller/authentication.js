@@ -2,6 +2,7 @@ const { general } = require("../../../utils");
 const merchanModel = require("../../models/merchant");
 const tokenAdmin = require("../../models/token_admin");
 const { createToken, createRefreshToken } = require("../../../utils/token");
+const merchantTimeModel = require("../../models/merchant_time");
 
 const { responseJSON, hash } = general;
 
@@ -111,6 +112,9 @@ class controllerAuthentication {
           refreshToken,
         });
       }
+      await merchantTimeModel.create({
+        merchantId: result?.dataValues.id,
+      });
 
       responseJSON({
         res,

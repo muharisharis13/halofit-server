@@ -48,6 +48,8 @@ class controllerBooking {
   async bookingList(req, res) {
     try {
       const { merchantId } = req.params;
+      const { page = 1, size = 10, query = "" } = req.query;
+      const { limit, offset } = getPagination(page, size);
       const getBooking = await bookingModel.findAll({
         include: [
           {
@@ -62,6 +64,9 @@ class controllerBooking {
             as: "user",
           },
         ],
+        limit,
+        offset,
+        order: [["booking_date", "DESC"]],
       });
 
       responseJSON({

@@ -285,6 +285,20 @@ class controllerTask {
     } = req.query;
     const { merchantId } = req.params;
     const { limit, offset } = getPagination(page, size);
+    const condition = {
+      [Op.or]: [
+        {
+          [column_name]: {
+            [Op.like]: `%${query}%`,
+          },
+        },
+        {
+          task_name: {
+            [Op.like]: `%${query}%`,
+          },
+        },
+      ],
+    };
     try {
       const getListTaskUser = await userTaskMode.findAndCountAll({
         include: [
@@ -301,11 +315,25 @@ class controllerTask {
             attributes: {
               exclude: ["password", "pin", "balance", "status", "bio"],
             },
+            where: {
+              [Op.or]: [
+                {
+                  [column_name]: {
+                    [Op.like]: `%${query}%`,
+                  },
+                },
+                {
+                  username: {
+                    [Op.like]: `%${query}%`,
+                  },
+                },
+              ],
+            },
           },
         ],
         limit,
         offset,
-        order: [["id", "DESC"]],
+        order: [["createdAt", "DESC"]],
       });
 
       responseJSON({
@@ -521,15 +549,25 @@ class controllerTask {
     } = req.query;
     const { merchantId } = req.params;
     const { limit, offset } = getPagination(page, size);
-    const condition = {
-      [`$${column_name}$`]: {
-        [Op.like]: `%${query ?? ""}%`,
-      },
-      merchantId: merchantId,
-    };
+    const condition = {};
     try {
       const getTask = await taskMoodel.findAndCountAll({
-        where: condition,
+        where: {
+          merchantId,
+          [Op.or]: [
+            {
+              [column_name]: {
+                [Op.like]: `%${query}%`,
+              },
+            },
+            {
+              task_name: {
+                [Op.like]: `%${query}%`,
+              },
+            },
+          ],
+        },
+
         limit,
         offset,
         order: [["id", "DESC"]],

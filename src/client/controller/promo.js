@@ -36,7 +36,7 @@ class controllerPromo {
         ],
       });
       const newData = getPromo.map((promo) => ({
-        ...promo.toJSON(),
+        ...promo.dataValues,
         promo_img: `${fullURL(req)}${pathPromo}/${promo.promo_img}`,
       }));
 

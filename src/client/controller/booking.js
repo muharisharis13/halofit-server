@@ -306,8 +306,8 @@ class controllerBooking {
           },
         });
 
-        historyModel.create({
-          nominal: 0 - parseInt(nominalPayment),
+        await historyModel.create({
+          nominal: parseInt(nominalPayment),
           description: "Reservasi di " + facility.dataValues?.facility_name,
           type: "reserve",
           userId: userId,
