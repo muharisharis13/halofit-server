@@ -169,7 +169,6 @@ class controllerNotification {
         include: [
           {
             model: roomModel,
-
             include: [
               {
                 model: userModel,
@@ -227,54 +226,60 @@ class controllerNotification {
       //         : false
       //     ) || getListNotifRequesJoinRoom;
 
-      const newListReqJoinRoom =
-        getListNotifRequesJoinRoom
-          .map((item) => {
-            const room = {
-              ...item.dataValues?.room?.dataValues,
-              user: {
-                ...item.dataValues?.room?.dataValues?.user.dataValues,
-                profile_img: `${fullURL(req)}${pathProfile}/${
-                  item.dataValues?.room?.dataValues?.user.profile_img
-                }`,
-              },
-              isHost: item.dataValues?.room?.userId == userId,
-            };
+      const newListReqJoinRoom = getListNotifRequesJoinRoom
+        .map((item) => {
+          if (!item || !item.dataValues) return null;
 
-            const list_user = JSON.parse(item.dataValues?.list_user)?.map(
-              (item) => {
-                const filter = getUser.find(
-                  (filter) => filter.dataValues?.id == parseInt(item?.userId)
-                );
+          console.log(item);
 
-                return {
-                  ...item,
-                  userId: parseInt(item?.userId),
-                  user: {
-                    ...filter.dataValues,
-                    profile_img: `${fullURL(req)}${pathProfile}/${
-                      filter.dataValues?.profile_img
-                    }`,
-                  },
-                };
-              }
-            );
+          const room = {
+            ...item.dataValues?.room?.dataValues,
+            user: {
+              ...item.dataValues?.room?.dataValues?.user?.dataValues,
+              profile_img: `${fullURL(req)}${pathProfile}/${
+                item.dataValues?.room?.dataValues?.user?.profile_img || ""
+              }`,
+            },
+            isHost: item.dataValues?.room?.userId == userId,
+          };
 
-            return {
-              ...item.dataValues,
-              room,
-              list_user,
-            };
-          })
-          .filter(
-            (filter) =>
-              filter.list_user?.find((find) => find.userId == userId) ||
-              filter?.room?.isHost
-          ) || getListNotifRequesJoinRoom;
+          const list_user = JSON.parse(item.dataValues?.list_user || "[]").map(
+            (item) => {
+              const filter = getUser.find(
+                (filter) => filter.dataValues?.id == parseInt(item?.userId)
+              );
+
+              return {
+                ...item,
+                userId: parseInt(item?.userId),
+                user: {
+                  ...filter?.dataValues,
+                  profile_img: `${fullURL(req)}${pathProfile}/${
+                    filter?.dataValues?.profile_img || ""
+                  }`,
+                },
+              };
+            }
+          );
+
+          return {
+            ...item.dataValues,
+            room,
+            list_user,
+          };
+        })
+        .filter((filter) => {
+          if (!filter || !filter.list_user || !filter.room) return false;
+          return (
+            filter.list_user?.find((find) => find.userId == userId) ||
+            filter.room.isHost
+          );
+        });
+
       responseJSON({
         res,
         status: 200,
-        data: newListReqJoinRoom,
+        data: newListReqJoinRoom || [],
       });
     } catch (error) {
       responseJSON({

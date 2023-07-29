@@ -446,7 +446,7 @@ class controllerTask {
         });
       }
 
-      if (res.file?.filename) {
+      if (req.file?.filename) {
         getDetailTask.update({
           banner_img: req.file.filename,
         });
