@@ -18,7 +18,7 @@ const getListTIme = (time) => {
 
     let arrTime = [];
 
-    for (let i = getOpenHour; i <= getCloseHour; i++) {
+    for (let i = getOpenHour; i < getCloseHour; i++) {
       const hour = i < 10 ? `0${i}` : `${i}`;
       arrTime.push(`${hour}:00`);
     }

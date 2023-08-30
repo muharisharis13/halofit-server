@@ -154,13 +154,6 @@ class controllerPromo {
     const { idPromo } = req.params;
     const { promo_name, merchantId, point, ExpiredIn, cost } = req.body;
     try {
-      if (!req.file) {
-        return responseJSON({
-          res,
-          status: 400,
-          data: "File must be uploaded!",
-        });
-      }
       const result = await PromoModel.findOne({
         where: {
           id: idPromo,
@@ -171,13 +164,15 @@ class controllerPromo {
           promo_img: req.file.filename,
         });
       }
-      result.update({
-        promo_name,
-        merchantId,
-        point,
-        ExpiredIn,
-        cost,
-      });
+      if (result) {
+        result.update({
+          promo_name,
+          merchantId,
+          point,
+          ExpiredIn,
+          cost,
+        });
+      }
 
       responseJSON({
         res,

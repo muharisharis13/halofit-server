@@ -325,7 +325,6 @@ class controllerBooking {
       //     room_name: room ? room.room_name : "",
       //   };
       // });
-
       responseJSON({
         res,
         status: 200,
